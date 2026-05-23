@@ -11,23 +11,26 @@ jobs:
 
     steps:
       - name: Descargar Codigo del Repositorio
-        uses: actions/checkout@v4  # 🚀 Actualizado a v4
+        uses: actions/checkout@v4
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4  # 🚀 Actualizado a v4
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Configurar Java y Android SDK
-        uses: actions/setup-java@v4  # 🚀 Actualizado a v4
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Instalar Dependencias del Proyecto
+      - name: Instalar Herramientas de Capacitor Globales
+        run: npm install -g @capacitor/cli @capacitor/core  # 🚀 REPARADO: Esto le da el ejecutable al servidor
+
+      - name: Instalar Dependencias del Proyecto y Sincronizar
         run: |
           npm install
-          npx cap sync android
+          cap sync android  # 🚀 REPARADO: Ya no usa npx, usa el comando directo global
 
       - name: Fabricar APK Real (Gradle)
         run: |
@@ -35,7 +38,7 @@ jobs:
           ./gradlew assembleDebug
 
       - name: Guardar APK como Artefacto
-        uses: actions/upload-artifact@v4  # 🚀 ¡REPARADO! Actualizado a v4
+        uses: actions/upload-artifact@v4
         with:
-          name: TV-STREAMING
+          name: Anime-Offis-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
