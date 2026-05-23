@@ -1,4 +1,4 @@
-name: Compilar APK de Anime Offis
+name: TV-STREAMING
 
 on:
   push:
@@ -18,11 +18,11 @@ jobs:
         with:
           node-version: 18
 
-      - name: Configurar Java y Android SDK
+      - name: Configurar Java 21 y Android SDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'  # 🚀 ¡AQUÍ ESTÁ EL CAMBIO CLAVE! Con esto ya no se traba
 
       - name: Instalar Herramientas de Capacitor Globales
         run: npm install -g @capacitor/cli @capacitor/core
@@ -32,7 +32,7 @@ jobs:
           npm install
           cap sync android
 
-      - name: Dar Permisos de Ejecucion a Gradle  # 🚀 ¡NUEVO PASO REPARADOR!
+      - name: Dar Permisos de Ejecucion a Gradle
         run: chmod +x android/gradlew
 
       - name: Fabricar APK Real (Gradle)
