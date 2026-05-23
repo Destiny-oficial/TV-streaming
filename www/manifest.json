@@ -1,0 +1,23 @@
+{
+  "name": "anime streaming",
+  "short_name": "anime streaming",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#05070a",
+  "theme_color": "#05070a",
+  "orientation": "portrait",
+  "version": "1.2.0",
+  "icons": [
+    {
+      "src": "/st192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/st512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

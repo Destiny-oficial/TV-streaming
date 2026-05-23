@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones - Styceht streaming Bot</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        body {
+            background: radial-gradient(circle at center, #111424 0%, #07080c 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        /* Contenedor estilo cristal neón */
+        .legal-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            position: relative;
+        }
+        .legal-container::before {
+            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #00aaff, #ff00aa);
+            border-radius: 22px; z-index: -1; opacity: 0.15; filter: blur(10px);
+        }
+        h1 {
+            text-align: center; margin-bottom: 10px; font-weight: bold; letter-spacing: 1px;
+            background: linear-gradient(90deg, #00aaff, #ff00aa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .version { text-align: center; font-size: 13px; color: #ff00aa; margin-bottom: 30px; font-weight: bold; }
+
+        .content-scroll {
+            max-height: 400px; overflow-y: auto; padding-right: 15px;
+        }
+        /* Personalización del scrollbar */
+        .content-scroll::-webkit-scrollbar { width: 6px; }
+        .content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        .content-scroll::-webkit-scrollbar-thumb { background: #00aaff; border-radius: 10px; }
+
+        h3 { color: #00aaff; margin: 20px 0 10px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        p { color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 15px; text-align: justify; }
+        ul { margin-left: 20px; margin-bottom: 15px; color: #ccc; font-size: 14px; line-height: 1.6; }
+        li { margin-bottom: 5px; }
+
+        /* Estilos para el Desplegable de Instrucciones */
+        details {
+            margin-top: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 170, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        details[open] {
+            border-color: #ff00aa;
+        }
+        summary {
+            padding: 14px;
+            font-weight: bold;
+            font-size: 15px;
+            color: #00aaff;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            user-select: none;
+        }
+        summary::after {
+            content: '▼';
+            font-size: 11px;
+            color: #ff00aa;
+            transition: transform 0.3s;
+        }
+        details[open] summary::after {
+            transform: rotate(-180deg);
+        }
+        .instrucciones-content {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 0, 170, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .code-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #ff00aa;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .footer-note {
+            text-align: center; margin-top: 30px; font-size: 12px; color: #666; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="legal-container">
+    <h1>TÉRMINOS Y CONDICIONES</h1>
+    <div class="version">Versión 1.2 — Sistema de Automatización Styceht</div>
+
+    <div class="content-scroll">
+        <p>Bienvenido al sistema de automatización y gestión de contenidos de <strong>Styceht streaming</strong>. Al utilizar nuestro bot @StycehtPort_bot de Telegram y sus herramientas de almacenamiento conectadas, aceptas cumplir de forma estricta los presentes Términos y Condiciones de Uso.</p>
+
+        <h3>1. Propósito del Sistema</h3>
+        <p>El bot @StycehtPort_bot tiene como única finalidad optimizar el flujo de almacenamiento y catalogación de material audiovisual hacia nuestros servidores de almacenamiento en la nube (Cloudflare R2), así como la generación automática de alertas informativas en nuestros canales oficiales de Discord.</p>
+
+        <h3>2. Responsabilidad de los Aportadores</h3>
+        <p>El acceso al bot @StycehtPort_bot está restringido exclusivamente al equipo autorizado de aportadores. Como usuario del sistema te comprometes a:</p>
+        <ul>
+            <li>No realizar subidas masivas de archivos duplicados que saturen el ancho de banda del servidor.</li>
+            <li>Asegurar que el formato de los nombres de las carpetas y los índices de los capítulos coincidan exactamente con la estructura indexada en nuestro catálogo global.</li>
+            <li>No compartir ni exponer los tokens, credenciales de acceso o ID de configuración del sistema con terceros no autorizados.</li>
+        </ul>
+
+        <h3>3. Limitación de Responsabilidad</h3>
+        <p>La administración de Styceht streaming no se hace responsable por fallas técnicas derivadas de cortes de conexión de red de terceros, caídas temporales de la API de Telegram, limitaciones del almacenamiento en Cloudflare R2 o bloqueos del sistema de archivos local en los dispositivos de ejecución (como entornos en Termux).</p>
+
+        <h3>4. Modificaciones y Suspensión del Servicio</h3>
+        <p>Nos reservamos el derecho de modificar, actualizar o revocar los tokens de acceso al bot en cualquier momento y sin previo aviso por razones de seguridad, mantenimiento de infraestructura o reestructuración de los servidores de streaming.</p>
+
+        <h3>5. Uso de Datos y Logs</h3>
+        <p>Para garantizar la estabilidad y auditar el correcto funcionamiento del sistema, el bot registra internamente las ID de usuarios, las rutas de subida creadas y las confirmaciones de los commits generados en el repositorio central.</p>
+    </div>
+
+    <details>
+        <summary>📖 Instrucciones para Subir Videos</summary>
+        <div class="instrucciones-content">
+            <p>Sigue detenidamente estos pasos para que el sistema en paralelo procese tus episodios sin errores de sincronización:</p>
+            <ul>
+                <li><strong>Paso 1:</strong> Abre el chat o grupo donde se encuentre el bot y ejecuta el comando de configuración <span class="code-box">/vd NombreCarpeta NumeroCapitulo</span>. Asegúrate de que el nombre de la carpeta sea idéntico al del catálogo.</li>
+                <li><strong>Paso 2:</strong> El bot responderá con una confirmación en color verde indicando que la ruta está lista para recibir el archivo.</li>
+                <li><strong>Paso 3:</strong> Envía o reenvía el video en formato <span class="code-box">.mp4</span> al chat. El sistema lo añadirá de forma automática a la fila de subida.</li>
+                <li><strong>Paso 4:</strong> Si los tres canales de procesamiento están llenos, el bot te indicará tu lugar exacto en la cola de espera. No vuelvas a enviar el comando para evitar cancelaciones por duplicado.</li>
+                <li><strong>Paso 5:</strong> Espera el mensaje de éxito. El bot limpiará la memoria del servidor de forma interna y disparará de inmediato la alerta oficial al servidor de Discord.</li>
+            </ul>
+        </div>
+    </details>
+
+    <div class="footer-note">
+        © 2026 Styceht streaming · Desarrollado por Destiny. Todos los derechos reservados.
+    </div>
+</div>
+
+</body>
+</html>

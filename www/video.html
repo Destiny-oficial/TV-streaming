@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo Styceht - Pro Player</title>
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+    <style>
+        body { background-color: #05070a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; user-select: none; overflow-x: hidden; }
+        #info-anime { text-align: center; margin-bottom: 15px; }
+        #info-anime h2 { color: #00aaff; margin: 0; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px; }
+        #info-anime p { color: #ff00aa; margin: 5px 0 0; font-weight: bold; }
+        .player-wrapper { background: #000; border-radius: 12px; width: 100%; max-width: 854px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* OVERLAY CONTROLES FLOTANTES */
+        .mobile-controls-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 40px; background: rgba(0, 0, 0, 0.45); transition: opacity 0.4s ease, visibility 0.4s; pointer-events: auto; visibility: visible; opacity: 1; }
+        .controls-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        
+        .m-icon-btn { background: rgba(255, 255, 255, 0.1); color: white; border: none; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, background 0.2s; }
+        .play-btn-large { width: 85px; height: 85px; background: rgba(0, 170, 255, 0.2); border: 1px solid rgba(0, 170, 255, 0.5); }
+        .play-btn-large span { font-size: 50px; color: #00aaff; }
+        
+        /* BOTÓN PANTALLA COMPLETA FLOTANTE */
+        .fullscreen-btn-flotante { position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); width: 45px; height: 45px; border-radius: 10px; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 105; transition: 0.2s; }
+        .fullscreen-btn-flotante span { font-size: 28px; }
+        .fullscreen-btn-flotante:active { transform: scale(0.9); background: #00aaff; }
+
+        /* TEXTO EN PAUSA CON DEGRADADO */
+        .paused-title-overlay {
+            position: absolute; top: 0; left: 0; width: 100%;
+            background: linear-gradient(to bottom, rgba(5,7,10,0.95) 0%, rgba(5,7,10,0.6) 60%, rgba(0,0,0,0) 100%);
+            padding: 20px 25px 40px 25px; box-sizing: border-box;
+            z-index: 130; pointer-events: none;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+        .paused-title-overlay h3 { margin: 0; font-size: 1.1rem; color: #00aaff; text-transform: uppercase; letter-spacing: 0.5px; }
+        .paused-title-overlay p { margin: 4px 0 0; font-size: 0.9rem; color: #ff00aa; font-weight: bold; }
+
+        /* MARCA DE AGUA DINÁMICA */
+        .marca-agua-offis {
+            position: absolute; bottom: 45px; left: 20px;
+            color: rgba(255, 255, 255, 0.15); font-family: 'Segoe UI', sans-serif;
+            font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 2px; z-index: 105; pointer-events: none; user-select: none;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        #ad-label { position: absolute; top: 15px; left: 15px; background: #00aaff; color: black; font-weight: bold; padding: 4px 10px; font-size: 11px; z-index: 110; border-radius: 4px; display:none; }
+
+        /* ADAPTACIÓN AUTOMÁTICA EN COLUMNA CON MEDIDAS FLEXIBLES (RESGUARDO DE SUBTÍTULOS) */
+        .video-js { width: 100% !important; height: 100% !important; }
+        
+        .video-js video { 
+            object-fit: contain !important; 
+            padding-bottom: 30px !important; /* Colchón fijo para que las letras no se corten */
+            box-sizing: border-box !important;
+        }
+
+        #player-container:fullscreen { 
+            display: flex !important; flex-direction: column !important;
+            align-items: center !important; justify-content: center !important;
+            background-color: #000 !important;
+        }
+        #player-container:fullscreen .video-js { 
+            width: 100% !important; height: 100% !important;
+            max-width: 100% !important; max-height: 100% !important;
+        }
+
+        #player-container:-webkit-full-screen { 
+            display: flex !important; flex-direction: column !important;
+            align-items: center !important; justify-content: center !important;
+            background-color: #000 !important;
+        }
+        #player-container:-webkit-full-screen .video-js { 
+            width: 100% !important; height: 100% !important;
+            max-width: 100% !important; max-height: 100% !important;
+        }
+
+        .vjs-text-track-display { bottom: 40px !important; }
+
+        .controles-nav { display: flex; justify-content: center; gap: 10px; margin-top: 20px; width: 100%; max-width: 854px; }
+        .btn-nav { padding: 12px; background: #15181c; border: 1px solid #2a2e35; color: white; border-radius: 8px; flex: 1; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="info-anime">
+        <h2 id="display-anime">CARGANDO...</h2>
+        <p id="display-cap">Capítulo --</p>
+    </div>
+
+    <div class="player-wrapper" id="player-container">
+        <div class="paused-title-overlay" id="pausedTitleOverlay">
+            <h3 id="overlay-anime">Título del Anime</h3>
+            <p id="overlay-cap">Capítulo --</p>
+        </div>
+
+        <div class="marca-agua-offis" id="watermark-dinamica">ANIME OFFIS</div>
+
+        <div id="ad-label">PROMOCIÓN</div>
+
+        <div class="mobile-controls-overlay" id="mobile-overlay">
+            <button class="m-icon-btn" onclick="saltar(-10)"><span class="material-symbols-rounded">replay_10</span></button>
+            <button class="m-icon-btn play-btn-large" id="center-play-pause"><span class="material-symbols-rounded" id="play-icon">play_arrow</span></button>
+            <button class="m-icon-btn" onclick="saltar(10)"><span class="material-symbols-rounded">forward_10</span></button>
+            
+            <button class="fullscreen-btn-flotante" onclick="toggleFullscreenDinamico()" id="btn-fs">
+                <span class="material-symbols-rounded">fullscreen</span>
+            </button>
+        </div>
+        <video id="video-styceht" class="video-js vjs-big-play-centered" preload="auto" crossorigin="anonymous"></video>
+    </div>
+
+    <div class="controles-nav">
+        <button class="btn-nav" onclick="cambiarCap(-1)">Anterior</button>
+        <button class="btn-nav" style="color:#ff00aa" onclick="window.location.href='index.html'">Inicio</button>
+        <button class="btn-nav" onclick="cambiarCap(1)">Siguiente</button>
+    </div>
+
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdn.animeoffis.com/sdk.js?id=AO-882065"></script>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        var carpeta = urlParams.get('anime') || 'Koori_no_Jouheki_LAT';
+        var numCapitulo = parseInt((urlParams.get('cap') || 'af1').replace('af', ''));
+
+        const nombreLimpio = carpeta.replace(/_/g, ' ');
+        const textoCapitulo = "Capítulo " + numCapitulo;
+
+        document.getElementById('display-anime').innerText = nombreLimpio;
+        document.getElementById('display-cap').innerText = textoCapitulo;
+        document.getElementById('overlay-anime').innerText = nombreLimpio;
+        document.getElementById('overlay-cap').innerText = textoCapitulo;
+
+        window.player = videojs('video-styceht', {
+            controls: true, 
+            fluid: true, 
+            inactivityTimeout: 2000,
+            html5: {
+                vhs: { overrideNative: true },
+                nativeAudioTracks: false,
+                nativeVideoTracks: false
+            }
+        });
+
+        const overlay = document.getElementById('mobile-overlay');
+        const pausedOverlay = document.getElementById('pausedTitleOverlay');
+
+        // --- LÓGICA DE HISTORIAL ---
+        function guardarProgreso() {
+            if (window.AnimeOffisSDK && window.AnimeOffisSDK.esAnuncio) return;
+            const data = {
+                anime: carpeta,
+                cap: numCapitulo,
+                tiempo: window.player.currentTime(),
+                visto: new Date().getTime()
+            };
+            localStorage.setItem(`styceht_progress_${carpeta}`, JSON.stringify(data));
+        }
+
+        function retomarProgreso() {
+            const guardado = localStorage.getItem(`styceht_progress_${carpeta}`);
+            if (guardado) {
+                const data = JSON.parse(guardado);
+                if (data.cap === numCapitulo && data.tiempo < window.player.duration() - 10) {
+                    window.player.currentTime(data.tiempo);
+                }
+            }
+        }
+
+        window.player.on('timeupdate', () => {
+            if (Math.floor(window.player.currentTime()) % 10 === 0) guardarProgreso();
+        });
+
+        window.player.on('loadedmetadata', () => {
+            if (window.AnimeOffisSDK && !window.AnimeOffisSDK.esAnuncio) retomarProgreso();
+        });
+
+        // --- PANTALLA COMPLETA Y BLOQUEO DE ORIENTACIÓN ---
+        async function toggleFullscreenDinamico() {
+            const contenedor = document.getElementById('player-container');
+            const iconoFs = document.querySelector('#btn-fs span');
+
+            if (!document.fullscreenElement) {
+                try {
+                    if (contenedor.requestFullscreen) { await contenedor.requestFullscreen(); }
+                    else if (contenedor.webkitRequestFullscreen) { await contenedor.webkitRequestFullscreen(); }
+
+                    if (screen.orientation && screen.orientation.lock) {
+                        await screen.orientation.lock('landscape').catch(e => console.log("Giro bloqueado"));
+                    }
+                    iconoFs.innerText = "fullscreen_exit";
+                } catch (err) { console.error(err); }
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                iconoFs.innerText = "fullscreen";
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const iconoFs = document.querySelector('#btn-fs span');
+            if (!document.fullscreenElement) {
+                iconoFs.innerText = "fullscreen";
+                if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); }
+            }
+        });
+
+        // --- DETECCIÓN DE PAUSA/PLAY PARA CAPA DE TÍTULO ---
+        window.player.on('pause', () => {
+            if (window.AnimeOffisSDK && !window.AnimeOffisSDK.esAnuncio) {
+                pausedOverlay.style.opacity = '1';
+            }
+        });
+
+        window.player.on('play', () => {
+            pausedOverlay.style.opacity = '0';
+            if (window.AnimeOffisSDK && window.AnimeOffisSDK.esAnuncio) {
+                document.getElementById('ad-label').style.display = 'block';
+            } else {
+                document.getElementById('ad-label').style.display = 'none';
+            }
+        });
+
+        window.player.on('ended', () => {
+            document.getElementById('ad-label').style.display = 'none';
+            pausedOverlay.style.opacity = '0';
+        });
+
+        window.player.on('userinactive', () => overlay.classList.add('controls-hidden'));
+        window.player.on('useractive', () => overlay.classList.remove('controls-hidden'));
+
+        document.getElementById('center-play-pause').addEventListener('click', () => {
+            window.player.paused() ? window.player.play() : window.player.pause();
+        });
+
+        function saltar(s) {
+            if (window.AnimeOffisSDK && !window.AnimeOffisSDK.esAnuncio) {
+                window.player.currentTime(window.player.currentTime() + s);
+            }
+        }
+
+        // 🚀 INTERCEPTOR INTELIGENTE DE ERRORES DEL SDK
+        // Si el SDK de anuncios se salta la publicidad e intenta inyectar la ruta rota vieja, 
+        // este disparador atrapa el error al vuelo y re-inyecta la ruta organizada en subcarpetas.
+        window.player.on('error', function() {
+            const error = window.player.error();
+            // Código 4 significa que falló la carga del archivo de video
+            if (error && error.code === 4) {
+                console.log("[HLS Guard] Detectada ruta obsoleta del SDK. Forzando subcarpeta...");
+                window.player.error(null); // Limpiar mensaje de error en pantalla
+                
+                const videoSrcForzado = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
+                window.player.src({ type: 'application/x-mpegURL', src: videoSrcForzado });
+                window.player.play();
+            }
+        });
+
+        function cargarCapitulo(num) {
+            numCapitulo = Math.max(1, num);
+            const capTexto = "Capítulo " + numCapitulo;
+            const animeNombreLimpio = carpeta.replace(/_/g, ' ');
+            
+            document.getElementById('display-cap').innerText = capTexto;
+            document.getElementById('overlay-cap').innerText = capTexto;
+            document.getElementById('watermark-dinamica').innerText = "ANIME OFFIS - " + animeNombreLimpio;
+            document.getElementById('ad-label').style.display = 'none';
+
+            const videoRealSrc = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
+            window.player.src({ type: 'application/x-mpegURL', src: videoRealSrc });
+
+            if (window.AnimeOffisSDK) {
+                window.AnimeOffisSDK.solicitarAnuncio('video-styceht');
+            } else {
+                window.player.play();
+            }
+
+            window.history.pushState(null, '', `?anime=${carpeta}&cap=af${numCapitulo}`);
+        }
+
+        window.onload = () => {
+            cargarCapitulo(numCapitulo);
+        };
+
+        function cambiarCap(o) { cargarCapitulo(numCapitulo + o); }
+    </script>
+</body>
+</html>

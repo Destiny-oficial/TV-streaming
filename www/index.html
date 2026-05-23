@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo - Anime Offis</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#05070a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #00aaff;
+      --secondary: #ff00aa;
+      --bg: #05070a;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(0, 170, 255, 0.2);
+      --drawer-bg: rgba(10, 12, 16, 0.95);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: white;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 90px 20px 140px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* HEADER FIJO SUPERIOR */
+    header {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 70px;
+      background: rgba(5, 7, 10, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 25px; z-index: 2000;
+      border-bottom: 1px solid var(--glass-border);
+      box-sizing: border-box;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      text-shadow: 0 0 15px rgba(0, 170, 255, 0.3);
+      text-transform: uppercase;
+      font-weight: 900;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+
+    header h1 span { color: var(--secondary); }
+
+    .menu-trigger {
+      color: white;
+      cursor: pointer;
+      font-size: 30px;
+      transition: 0.2s;
+    }
+    .menu-trigger:active { transform: scale(0.9); color: var(--primary); }
+
+    /* MENÚ HAMBURGUESA LATERAL (DRAWER DERECHO) */
+    .nav-drawer {
+      position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
+      background: var(--drawer-bg); z-index: 3000;
+      backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 40px 20px;
+      box-shadow: -10px 0 30px rgba(0,0,0,0.8);
+      border-left: 1px solid var(--glass-border);
+      box-sizing: border-box;
+    }
+    .nav-drawer.open { right: 0; }
+    
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2500;
+      display: none; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    }
+    .drawer-overlay.show { display: block; }
+
+    .drawer-section-title {
+        color: var(--primary); font-size: 0.8rem; font-weight: 800;
+        letter-spacing: 1.5px; text-transform: uppercase; margin: 25px 0 12px 5px;
+    }
+
+    .drawer-item {
+      display: flex; align-items: center; gap: 12px; padding: 14px 15px;
+      color: #94a3b8; text-decoration: none; border-radius: 12px;
+      margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; transition: 0.25s;
+      cursor: pointer; border: 1px solid transparent;
+    }
+    .drawer-item span { font-size: 22px; }
+    .drawer-item:hover, .drawer-item.active {
+      background: var(--card-bg); color: white; border-color: rgba(255,255,255,0.05);
+    }
+    .drawer-item.active { color: var(--primary); border-color: var(--glass-border); }
+
+    /* BUSCADOR AUTO-AJUSTABLE */
+    .search-box {
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      margin: 10px auto 25px;
+    }
+    .search-box input {
+      width: 100%; padding: 15px 20px 15px 50px;
+      background: var(--card-bg); border: 1px solid var(--glass-border);
+      border-radius: 30px; color: white; outline: none; backdrop-filter: blur(15px);
+      transition: 0.3s; font-size: 1rem;
+    }
+    .search-box input:focus { border-color: var(--secondary); box-shadow: 0 0 15px rgba(255, 0, 170, 0.2); }
+    .search-box span { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--primary); }
+
+    /* GRID AUTO-ELÁSTICO DE RESPONSIVIDAD DINÁMICA */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* TARJETAS DE ANIME */
+    .anime-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      overflow: hidden;
+      transition: 0.4s;
+      text-decoration: none;
+      color: white;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .anime-card:hover { transform: translateY(-8px); border-color: var(--primary); }
+    .card-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .card-info { padding: 12px; text-align: center; }
+    .card-info h3 { margin: 0; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+
+    /* BADGES */
+    .badge {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0, 0, 0, 0.75); padding: 4px 8px;
+      border-radius: 6px; font-size: 0.7rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .status-tag { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; text-transform: uppercase; border: 1px solid; font-weight: bold; }
+    .emision { border-color: var(--primary); color: var(--primary); background: rgba(0, 170, 255, 0.1); }
+    .finalizado { border-color: var(--secondary); color: var(--secondary); background: rgba(255, 0, 170, 0.1); }
+
+    /* BARRA INFERIOR DE FILTROS */
+    .bottom-nav {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: rgba(10, 12, 16, 0.85); backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border); border-radius: 25px;
+        display: flex; justify-content: space-around; align-items: center;
+        padding: 10px 15px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        width: 85%; max-width: 400px;
+    }
+
+    .nav-item {
+        flex: 1; display: flex; flex-direction: column; align-items: center;
+        color: #777; cursor: pointer; transition: 0.3s; font-size: 0.65rem; gap: 4px;
+        padding: 5px 0;
+    }
+
+    .nav-item span { font-size: 24px; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active span { font-variation-settings: 'FILL' 1; }
+
+    /* AJUSTES PARA PANTALLAS GRANDES DE COMPUTADORA */
+    @media (min-width: 1024px) {
+        .bottom-nav { bottom: 30px; width: auto; min-width: 400px; padding: 10px 20px; }
+        .nav-item { flex-direction: row; gap: 10px; padding: 8px 20px; font-size: 0.85rem; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>ANIME OFFIS <span id="header-tag">PRO</span></h1>
+    <span class="material-symbols-rounded menu-trigger" onclick="toggleDrawer(event)">menu</span>
+  </header>
+
+  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+  <div class="nav-drawer" id="navDrawer">
+      <h2 style="color:white; font-size:1.3rem; font-weight:800; margin:0 0 20px 5px; letter-spacing:0.5px;">MENÚ</h2>
+      
+      <div class="drawer-section-title">Usuario</div>
+      <div class="drawer-item" onclick="location.href='https://www.animeoffis.com/perfil'">
+          <span class="material-symbols-rounded">account_circle</span>Mi Perfil
+      </div>
+
+      <div class="drawer-section-title">Preferencias de Idioma</div>
+      <div class="drawer-item" id="opt-es" onclick="cambiarIdioma('es')">
+          <span class="material-symbols-rounded">translate</span>Español (Lat)
+      </div>
+      <div class="drawer-item" id="opt-jp" onclick="cambiarIdioma('jp')">
+          <span class="material-symbols-rounded">language</span>Japonés (Sub)
+      </div>
+  </div>
+
+  <div class="search-box">
+    <span class="material-symbols-rounded">search</span>
+    <input type="text" id="searchInput" placeholder="Buscar en el catálogo..." onkeyup="filtrarContenido()">
+  </div>
+
+  <div class="grid-container" id="mainGrid"></div>
+
+  <div class="bottom-nav">
+      <div class="nav-item active" id="btn-todos" onclick="filtrarCategoria('todos', this)">
+          <span class="material-symbols-rounded">grid_view</span>Todos
+      </div>
+      <div class="nav-item" onclick="filtrarCategoria('emision', this)">
+          <span class="material-symbols-rounded">bolt</span>Emisión
+      </div>
+      <div class="nav-item" onclick="filtrarCategoria('finalizado', this)">
+          <span class="material-symbols-rounded">task_alt</span>Finalizados
+      </div>
+  </div>
+
+  <script>
+    const WORKER_URL = "https://video.animeoffis.com"; 
+    
+    let catalogoBase = []; 
+    let catalogoProcesado = [];
+    let filtroCategoriaActual = 'todos';
+    let idiomaActual = localStorage.getItem('pref_lang') || 'es';
+
+    // 1. Cargar el JSON externo
+    async function cargarBaseDeDatos() {
+        try {
+            const respuesta = await fetch('./catalogo.json');
+            if (!respuesta.ok) throw new Error("Archivo no encontrado");
+            catalogoBase = await respuesta.json();
+            cambiarIdioma(idiomaActual);
+        } catch (error) {
+            console.error("Error cargando el catálogo JSON:", error);
+            document.getElementById('mainGrid').innerHTML = "<p style='opacity:0.5; text-align:center; padding: 40px;'>Error al cargar catalogo.json</p>";
+        }
+    }
+
+    // Control del Menú Lateral (Drawer)
+    function toggleDrawer(e) {
+        if(e) e.stopPropagation();
+        document.getElementById('navDrawer').classList.toggle('open');
+        document.getElementById('drawerOverlay').classList.toggle('show');
+    }
+
+    // 2. Lógica de Idioma (Añadido flag esHLS para inicializar)
+    function cambiarIdioma(lang) {
+        idiomaActual = lang;
+        localStorage.setItem('pref_lang', lang);
+        
+        document.querySelectorAll('.drawer-item').forEach(opt => opt.classList.remove('active'));
+        const optActive = document.getElementById(`opt-${lang}`);
+        if(optActive) optActive.classList.add('active');
+        
+        catalogoProcesado = catalogoBase.map(item => ({
+            ...item,
+            total: 0,
+            esHLS: false, // Inicia apagado por seguridad
+            carpetaFinal: (idiomaActual === 'es') ? item.carpeta + "_LAT" : item.carpeta
+        }));
+
+        document.getElementById('header-tag').innerText = (idiomaActual === 'es') ? "LAT" : "SUB";
+        
+        renderizar();
+        sincronizarConR2();
+        
+        const drawer = document.getElementById('navDrawer');
+        if(drawer && drawer.classList.contains('open')) toggleDrawer();
+    }
+
+    // 3. Renderizado principal (Filtro HLS Estricto Reparado)
+    function renderizar(dataParaMostrar = null) {
+      const grid = document.getElementById('mainGrid');
+      grid.innerHTML = "";
+
+      const lista = dataParaMostrar || catalogoProcesado.filter(item => {
+          // Si el total es 0 o el flag esHLS es falso, bloquea la tarjeta
+          if (item.total === 0 || !item.esHLS) return false; 
+          
+          if (filtroCategoriaActual === 'emision') return item.total < 12;
+          if (filtroCategoriaActual === 'finalizado') return item.total >= 12;
+          return true;
+      });
+
+      if (lista.length === 0) {
+          grid.innerHTML = "<p style='opacity:0.3; margin-top:20px; grid-column: 1/-1; text-align:center; padding:40px;'>No hay series en formato HLS disponibles...</p>";
+          return;
+      }
+
+      lista.forEach(item => {
+        const card = document.createElement('a');
+        card.className = "anime-card";
+        card.href = `lista.html?anime=${item.carpetaFinal}&total=${item.total}`;
+        
+        let sClase = (item.total >= 12) ? "finalizado" : "emision";
+        let sTexto = (item.total >= 12) ? "Finalizado" : "Emisión";
+
+        card.innerHTML = `
+          <div class="badge">${item.total} EPS</div>
+          <img src="${item.imagen}" class="card-img" loading="lazy">
+          <div class="card-info">
+            <h3>${item.titulo}</h3>
+            <span class="status-tag ${sClase}">${sTexto}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 4. Conexión con Worker (Corregida: Setea el flag esHLS al recibir respuesta)
+    async function sincronizarConR2() {
+      await Promise.all(catalogoProcesado.map(async (item) => {
+        try {
+          const res = await fetch(`${WORKER_URL}/?carpeta=${item.carpetaFinal}&hls=true`);
+          if (res.ok) {
+            const data = await res.json();
+            item.total = data.total; 
+            item.esHLS = data.total > 0; // 🚀 REPARADO: Ahora sí enciende la visibilidad
+          }
+        } catch (e) {
+            item.esHLS = false;
+        }
+      }));
+      renderizar();
+    }
+
+    // 5. Botones inferiores
+    function filtrarCategoria(cat, element) {
+        filtroCategoriaActual = cat;
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        element.classList.add('active');
+        document.getElementById('searchInput').value = ""; 
+        renderizar();
+    }
+
+    // 6. Buscador funcional
+    function filtrarContenido() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      if (query === "") {
+          renderizar();
+          return;
+      }
+
+      const filtrados = catalogoProcesado.filter(item => {
+          const coincide = item.titulo.toLowerCase().includes(query);
+          const esValidoHLS = item.total > 0 && item.esHLS;
+          return coincide && esValidoHLS;
+      });
+
+      renderizar(filtrados);
+    }
+
+    cargarBaseDeDatos();
+
+    // --- REGISTRO DEL SERVICE WORKER MANDATORIO PWA ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker inyectado con éxito', reg))
+                .catch(err => console.error('Error inyección Service Worker', err));
+        });
+    }
+  </script>
+</body>
+</html>

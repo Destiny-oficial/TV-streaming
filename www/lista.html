@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Capítulos - Anime Offis</title>
+    <style>
+        :root {
+            --primary: #00aaff;
+            --secondary: #ff00aa;
+            --bg: #05070a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(0, 170, 255, 0.2);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            user-select: none;
+        }
+
+        header { text-align: center; margin-bottom: 35px; }
+        header h1 { font-size: 1.5rem; color: var(--primary); font-weight: 900; margin: 0; letter-spacing: 2px; }
+        header h1 span { color: var(--secondary); }
+
+        #anime-title {
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-top: 15px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 15px rgba(0, 170, 255, 0.3);
+        }
+
+        .lista-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 8px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+        }
+
+        .capitulo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            text-decoration: none;
+            color: white;
+            border-radius: 12px;
+            transition: 0.25s ease;
+        }
+
+        .capitulo-item:last-child { border-bottom: none; }
+
+        .capitulo-item:hover {
+            background: rgba(0, 170, 255, 0.06);
+            border-color: transparent;
+        }
+
+        .capitulo-item:hover .cap-info h3 {
+            color: var(--primary);
+            text-shadow: 0 0 8px rgba(0, 170, 255, 0.4);
+        }
+
+        .capitulo-item:hover .btn-ver {
+            background: var(--secondary);
+            box-shadow: 0 0 12px rgba(255, 0, 170, 0.5);
+            transform: scale(1.05);
+        }
+
+        .cap-info h3 { margin: 0; color: #fff; font-size: 1.1rem; font-weight: 700; transition: 0.2s; }
+        .cap-info p { margin: 6px 0 0; color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; font-weight: 500; }
+
+        .btn-ver {
+            background: #15181c;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <header>
+        <h1>ANIME OFFIS <span>AF GDL</span></h1>
+        <div id="anime-title">NOMBRE DEL ANIME</div>
+    </header>
+
+    <div class="lista-container" id="contenedor-caps"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const anime = urlParams.get('anime') || 'Koori_no_Jouheki_LAT';
+        const totalCaps = parseInt(urlParams.get('total')) || 4; 
+
+        // Limpia guiones y remueve sufijos de idioma para mejorar la presentación visual
+        const nombreLimpio = anime.replace(/_/g, ' ').replace(/ LAT/i, '').replace(/ SUB/i, '');
+        document.getElementById('anime-title').innerText = nombreLimpio;
+
+        const contenedor = document.getElementById('contenedor-caps');
+
+        // Generador dinámico de elementos
+        for (let i = 1; i <= totalCaps; i++) {
+            const item = document.createElement('a');
+            item.className = 'capitulo-item';
+            // Envía los parámetros limpios al reproductor HLS organizado
+            item.href = `video.html?anime=${anime}&cap=af${i}`; 
+
+            item.innerHTML = `
+                <div class="cap-info">
+                    <h3>Capítulo ${i}</h3>
+                    <p>${nombreLimpio} — Episodio ${i}</p>
+                </div>
+                <div class="btn-ver">VER AHORA</div>
+            `;
+            contenedor.appendChild(item);
+        }
+    </script>
+</body>
+</html>
