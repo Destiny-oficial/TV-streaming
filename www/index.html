@@ -226,6 +226,34 @@
   </div>
 
   <script>
+
+// Asegúrate de que Capacitor esté cargado
+const { PushNotifications } = capacitor.plugins;
+
+// 1. Pedir permiso para mostrar notificaciones flotantes
+PushNotifications.requestPermissions().then(result => {
+  if (result.receive === 'granted') {
+    // 2. Si el usuario acepta, registrar la app en Firebase
+    PushNotifications.register();
+  }
+});
+
+// 3. Cuando la app se registre con éxito, la unimos al canal "estrenos"
+PushNotifications.addListener('registration', (token) => {
+  console.log('App lista para recibir alertas de Anime Offis');
+  
+  // Aquí le decimos a Firebase que meta a este usuario al grupo de "estrenos"
+  fetch(`https://iid.googleapis.com/v1/${token.value}/rel/topics/estrenos`, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer TU_SERVER_KEY' }
+  });
+});
+
+// 4. Qué hacer cuando llegue una notificación con la app abierta
+PushNotifications.addListener('pushNotificationReceived', (notification) => {
+  alert(`🚨 ¡Estreno! ${notification.title}: ${notification.body}`);
+});
+
     const WORKER_URL = "https://video.animeoffis.com"; 
     
     let catalogoBase = []; 
