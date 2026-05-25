@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Offis - Modo Offline</title>
+    <style>
+        :root {
+            --bg-color: #05070a;
+            --magenta-neon: #ff007f;
+            --blue-neon: #00f0ff;
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --card-bg: rgba(15, 20, 28, 0.7);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #f1f5f9;
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            padding: 15px;
+            margin: 0;
+            user-select: none;
+            background-image: 
+                radial-gradient(circle at top left, rgba(255, 0, 127, 0.04), transparent 300px),
+                radial-gradient(circle at bottom right, rgba(0, 240, 255, 0.04), transparent 300px);
+        }
+
+        header {
+            text-align: center;
+            margin: 15px 0 25px 0;
+        }
+
+        header h1 {
+            color: var(--magenta-neon);
+            margin: 0;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+        }
+
+        header p {
+            color: var(--blue-neon);
+            margin: 5px 0 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-regresar {
+            padding: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-regresar:hover {
+            border-color: var(--blue-neon);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+        }
+
+        /* --- CONTENEDOR DEL REPRODUCTOR LOCAL --- */
+        .reproductor-offline {
+            width: 100%;
+            max-width: 854px;
+            margin: 0 auto 25px auto;
+            display: none;
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--blue-neon);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+        }
+
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        /* --- LISTA DE CAPÍTULOS GUARDADOS NATIVAMENTE --- */
+        .lista-descargas {
+            max-width: 854px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-descargado {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .item-descargado:hover {
+            transform: scale(1.01);
+            border-color: rgba(0, 240, 255, 0.2);
+        }
+
+        .item-info h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .item-info p {
+            margin: 4px 0 0;
+            font-size: 0.8rem;
+            color: var(--magenta-neon);
+            font-weight: bold;
+        }
+
+        .actions-btn {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-play-offline {
+            background: linear-gradient(135deg, var(--blue-neon), #00a8ff);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(0, 240, 255, 0.2);
+        }
+
+        .btn-borrar {
+            background: rgba(255, 0, 127, 0.1);
+            color: var(--magenta-neon);
+            border: 1px solid rgba(255, 0, 127, 0.2);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-borrar:hover {
+            background: var(--magenta-neon);
+            color: #fff;
+        }
+
+        #status-descarga {
+            background: rgba(0, 240, 255, 0.03);
+            border: 1px dashed var(--blue-neon);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: none;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Biblioteca Local</h1>
+        <p>Modo Desconectado Blindado</p>
+    </header>
+
+    <button class="btn-regresar" onclick="window.location.href='index.html'">⬅ Regresar al Inicio</button>
+
+    <div id="status-descarga">Iniciando enrutamiento local...</div>
+
+    <div class="reproductor-offline" id="box-reproductor">
+        <video id="video-local" controls autoplay controlsList="nodownload"></video>
+    </div>
+
+    <div class="lista-descargas" id="lista-caps"></div>
+
+    <script src="capacitor.js"></script>
+    <script>
+        const { Filesystem } = capacitor.Plugins;
+        const { Directory } = Filesystem;
+
+        let descargasGuardadas = JSON.parse(localStorage.getItem('offis_downloads') || '[]');
+
+        async function revisarDescargasPendientes() {
+            const pendiente = localStorage.getItem('pendiente_descarga');
+            if (!pendiente) {
+                listarCapitulos();
+                return;
+            }
+
+            const task = JSON.parse(pendiente);
+            localStorage.removeItem('pendiente_descarga'); 
+
+            const statusBox = document.getElementById('status-descarga');
+            statusBox.style.display = 'block';
+            statusBox.innerText = `📥 Descargando: ${task.titulo} - Cap ${task.cap}...\nNo salgas de la App.`;
+
+            try {
+                // Guarda el archivo de manera oculta dentro del Sandbox privado de la APK
+                const nombreArchivoLocal = `anime_offis_${task.carpeta}_af${task.cap}.mp4`;
+
+                await Filesystem.downloadFile({
+                    url: task.urlMp4,
+                    path: nombreArchivoLocal,
+                    directory: Directory.Data
+                });
+
+                const yaExiste = descargasGuardadas.some(x => x.id === `${task.carpeta}_${task.cap}`);
+                if (!yaExiste) {
+                    descargasGuardadas.push({
+                        id: `${task.carpeta}_${task.cap}`,
+                        titulo: task.titulo,
+                        cap: task.cap,
+                        archivo: nombreArchivoLocal
+                    });
+                    localStorage.setItem('offis_downloads', JSON.stringify(descargasGuardadas));
+                }
+
+                statusBox.innerText = "✅ ¡Capítulo guardado con éxito en el almacenamiento interno!";
+                setTimeout(() => statusBox.style.display = 'none', 3000);
+
+            } catch (error) {
+                console.error(error);
+                statusBox.innerText = "❌ Error en transferencia. Verifica tu conexión.";
+            }
+
+            listarCapitulos();
+        }
+
+        function listarCapitulos() {
+            const contenedor = document.getElementById('lista-caps');
+            contenedor.innerHTML = "";
+
+            if (descargasGuardadas.length === 0) {
+                contenedor.innerHTML = "<p style='text-align:center; color:var(--magenta-neon); font-size:0.9rem;'>No tienes contenido descargado.</p>";
+                return;
+            }
+
+            descargasGuardadas.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "item-descargado";
+                div.innerHTML = `
+                    <div class="item-info">
+                        <h3>${item.titulo}</h3>
+                        <p>Capítulo ${item.cap}</p>
+                    </div>
+                    <div class="actions-btn">
+                        <button class="btn-play-offline" onclick="reproducirLocal('${item.archivo}')">▶ Ver</button>
+                        <button class="btn-borrar" onclick="eliminarArchivoLocal('${item.id}', '${item.archivo}')">🗑️</button>
+                    </div>
+                `;
+                contenedor.appendChild(div);
+            });
+        }
+
+        async function reproducirLocal(nombreArchivo) {
+            try {
+                const urlNativa = await Filesystem.getUri({
+                    directory: Directory.Data,
+                    path: nombreArchivo
+                });
+
+                // Convierte el path del sistema nativo a un protocolo seguro que el WebView de Capacitor entienda
+                const convertedUrl = capacitor.convertFileSrc(urlNativa.uri);
+
+                const box = document.getElementById('box-reproductor');
+                const videoTag = document.getElementById('video-local');
+
+                box.style.display = 'block';
+                videoTag.src = convertedUrl;
+                videoTag.play();
+
+                box.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (err) {
+                alert("Error de renderizado local: " + err);
+            }
+        }
+
+        async function eliminarArchivoLocal(id, nombreArchivo) {
+            if (!confirm("¿Eliminar capítulo de la memoria interna?")) return;
+            try {
+                await Filesystem.deleteFile({
+                    directory: Directory.Data,
+                    path: nombreArchivo
+                });
+                descargasGuardadas = descargasGuardadas.filter(x => x.id !== id);
+                localStorage.setItem('offis_downloads', JSON.stringify(descargasGuardadas));
+                document.getElementById('box-reproductor').style.display = 'none';
+                document.getElementById('video-local').src = "";
+                listarCapitulos();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        window.onload = () => {
+            revisarDescargasPendientes();
+        };
+    </script>
+</body>
+</html>

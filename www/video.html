@@ -27,6 +27,52 @@
         .fullscreen-btn-flotante span { font-size: 28px; }
         .fullscreen-btn-flotante:active { transform: scale(0.9); background: #00aaff; }
 
+        /* --- ICONO DE DESCARGA EN LA ESQUINA SUPERIOR DERECHA --- */
+        .download-status-overlay {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 140; /* Por encima de la mayoría de las capas */
+            background: rgba(5, 7, 10, 0.75);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 6px 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .download-status-overlay.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .download-status-overlay span.icon {
+            color: #00f0ff;
+            font-size: 20px;
+            animation: bounceDownload 1.2s infinite ease-in-out;
+        }
+
+        .download-status-overlay span.text {
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Animación de rebote sutil para el icono de descarga */
+        @keyframes bounceDownload {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(3px); color: #ff00aa; }
+        }
+
         /* TEXTO EN PAUSA CON DEGRADADO */
         .paused-title-overlay {
             position: absolute; top: 0; left: 0; width: 100%;
@@ -50,12 +96,11 @@
 
         #ad-label { position: absolute; top: 15px; left: 15px; background: #00aaff; color: black; font-weight: bold; padding: 4px 10px; font-size: 11px; z-index: 110; border-radius: 4px; display:none; }
 
-        /* ADAPTACIÓN AUTOMÁTICA EN COLUMNA CON MEDIDAS FLEXIBLES (RESGUARDO DE SUBTÍTULOS) */
+        /* ADAPTACIÓN AUTOMÁTICA EN COLUMNA CON MEDIDAS FLEXIBLES */
         .video-js { width: 100% !important; height: 100% !important; }
-
         .video-js video { 
             object-fit: contain !important; 
-            padding-bottom: 30px !important; /* Colchón fijo para que las letras no se corten */
+            padding-bottom: 30px !important; 
             box-sizing: border-box !important;
         }
 
@@ -94,6 +139,11 @@
 
     <div class="player-wrapper" id="player-container">
 
+        <div class="download-status-overlay" id="downloadIndicator">
+            <span class="material-symbols-rounded icon">downloading</span>
+            <span class="text">Descargando</span>
+        </div>
+
         <div class="paused-title-overlay" id="pausedTitleOverlay">
             <h3 id="overlay-anime">Título del Anime</h3>
             <p id="overlay-cap">Capítulo --</p>
@@ -120,6 +170,9 @@
         <button class="btn-nav" onclick="cambiarCap(-1)">Anterior</button>
         <button class="btn-nav" style="color:#ff00aa" onclick="window.location.href='index.html'">Inicio</button>
         <button class="btn-nav" onclick="cambiarCap(1)">Siguiente</button>
+        <button id="btn-descargar-offline" class="btn-nav" style="color:#00f0ff; border-color:#00f0ff; margin-top:15px; width:100%;" onclick="prepararDescarga()">
+            📥 Descargar para ver Sin Conexión
+        </button>
     </div>
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
@@ -239,7 +292,6 @@
             window.player.paused() ? window.player.play() : window.player.pause();
         });
 
-        // Cambiar ícono flotante según estado real del reproductor
         window.player.on('play', () => {
             document.getElementById('play-icon').innerText = 'pause';
         });
@@ -286,7 +338,6 @@
                 })
                 .catch(err => console.log("Error al sincronizar portada: ", err));
 
-            // Cargar y reproducir el video directamente en cualquier resolución/dispositivo
             const videoRealSrc = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
             window.player.src({ type: 'application/x-mpegURL', src: videoRealSrc });
 
@@ -301,9 +352,34 @@
 
         window.onload = () => {
             cargarCapitulo(numCapitulo);
+            
+            // Si el usuario vuelve de una descarga o se quedó guardado algo, limpiamos el icono por seguridad
+            document.getElementById('downloadIndicator').classList.remove('active');
         };
 
         function cambiarCap(o) { cargarCapitulo(numCapitulo + o); }
+
+        function prepararDescarga() {
+            // 1. Encendemos el indicador visual con su animación cyberpunk
+            const indicador = document.getElementById('downloadIndicator');
+            indicador.classList.add('active');
+
+            // 2. Captura los datos dinámicos del anime en reproducción activa
+            const datosDescarga = {
+                carpeta: carpeta,
+                cap: numCapitulo,
+                titulo: document.getElementById('display-anime').innerText,
+                urlMp4: `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/video.mp4`
+            };
+            
+            // Almacena en la caché del navegador
+            localStorage.setItem('pendiente_descarga', JSON.stringify(datosDescarga));
+            
+            // 3. Le damos un pequeño delay de 800ms para que el usuario alcance a ver el efecto visual antes del cambio de página
+            setTimeout(() => {
+                window.location.href = 'offline.html';
+            }, 800);
+        }
     </script>
 </body>
 </html>
