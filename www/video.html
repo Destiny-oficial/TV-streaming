@@ -13,15 +13,15 @@
         #info-anime h2 { color: #00aaff; margin: 0; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px; }
         #info-anime p { color: #ff00aa; margin: 5px 0 0; font-weight: bold; }
         .player-wrapper { background: #000; border-radius: 12px; width: 100%; max-width: 854px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
+
         /* OVERLAY CONTROLES FLOTANTES */
         .mobile-controls-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; display: flex; align-items: center; justify-content: center; gap: 40px; background: rgba(0, 0, 0, 0.45); transition: opacity 0.4s ease, visibility 0.4s; pointer-events: auto; visibility: visible; opacity: 1; }
         .controls-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
-        
+
         .m-icon-btn { background: rgba(255, 255, 255, 0.1); color: white; border: none; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, background 0.2s; }
         .play-btn-large { width: 85px; height: 85px; background: rgba(0, 170, 255, 0.2); border: 1px solid rgba(0, 170, 255, 0.5); }
         .play-btn-large span { font-size: 50px; color: #00aaff; }
-        
+
         /* BOTÓN PANTALLA COMPLETA FLOTANTE */
         .fullscreen-btn-flotante { position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); width: 45px; height: 45px; border-radius: 10px; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 105; transition: 0.2s; }
         .fullscreen-btn-flotante span { font-size: 28px; }
@@ -52,7 +52,7 @@
 
         /* ADAPTACIÓN AUTOMÁTICA EN COLUMNA CON MEDIDAS FLEXIBLES (RESGUARDO DE SUBTÍTULOS) */
         .video-js { width: 100% !important; height: 100% !important; }
-        
+
         .video-js video { 
             object-fit: contain !important; 
             padding-bottom: 30px !important; /* Colchón fijo para que las letras no se corten */
@@ -93,6 +93,7 @@
     </div>
 
     <div class="player-wrapper" id="player-container">
+
         <div class="paused-title-overlay" id="pausedTitleOverlay">
             <h3 id="overlay-anime">Título del Anime</h3>
             <p id="overlay-cap">Capítulo --</p>
@@ -106,11 +107,12 @@
             <button class="m-icon-btn" onclick="saltar(-10)"><span class="material-symbols-rounded">replay_10</span></button>
             <button class="m-icon-btn play-btn-large" id="center-play-pause"><span class="material-symbols-rounded" id="play-icon">play_arrow</span></button>
             <button class="m-icon-btn" onclick="saltar(10)"><span class="material-symbols-rounded">forward_10</span></button>
-            
+
             <button class="fullscreen-btn-flotante" onclick="toggleFullscreenDinamico()" id="btn-fs">
                 <span class="material-symbols-rounded">fullscreen</span>
             </button>
         </div>
+
         <video id="video-styceht" class="video-js vjs-big-play-centered" preload="auto" crossorigin="anonymous"></video>
     </div>
 
@@ -237,22 +239,26 @@
             window.player.paused() ? window.player.play() : window.player.pause();
         });
 
+        // Cambiar ícono flotante según estado real del reproductor
+        window.player.on('play', () => {
+            document.getElementById('play-icon').innerText = 'pause';
+        });
+        window.player.on('pause', () => {
+            document.getElementById('play-icon').innerText = 'play_arrow';
+        });
+
         function saltar(s) {
             if (window.AnimeOffisSDK && !window.AnimeOffisSDK.esAnuncio) {
                 window.player.currentTime(window.player.currentTime() + s);
             }
         }
 
-        // 🚀 INTERCEPTOR INTELIGENTE DE ERRORES DEL SDK
-        // Si el SDK de anuncios se salta la publicidad e intenta inyectar la ruta rota vieja, 
-        // este disparador atrapa el error al vuelo y re-inyecta la ruta organizada en subcarpetas.
         window.player.on('error', function() {
             const error = window.player.error();
-            // Código 4 significa que falló la carga del archivo de video
             if (error && error.code === 4) {
                 console.log("[HLS Guard] Detectada ruta obsoleta del SDK. Forzando subcarpeta...");
-                window.player.error(null); // Limpiar mensaje de error en pantalla
-                
+                window.player.error(null);
+
                 const videoSrcForzado = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
                 window.player.src({ type: 'application/x-mpegURL', src: videoSrcForzado });
                 window.player.play();
@@ -263,12 +269,24 @@
             numCapitulo = Math.max(1, num);
             const capTexto = "Capítulo " + numCapitulo;
             const animeNombreLimpio = carpeta.replace(/_/g, ' ');
-            
+
             document.getElementById('display-cap').innerText = capTexto;
             document.getElementById('overlay-cap').innerText = capTexto;
             document.getElementById('watermark-dinamica').innerText = "ANIME OFFIS - " + animeNombreLimpio;
             document.getElementById('ad-label').style.display = 'none';
 
+            const CATALOGO_URL = "https://raw.githubusercontent.com/Destiny-oficial/Anime-OffisVD/main/catalogo.json";
+            fetch(CATALOGO_URL)
+                .then(res => res.json())
+                .then(catalogo => {
+                    const animeData = catalogo.find(item => item.carpeta === carpeta);
+                    if (animeData && animeData.imagen) {
+                        window.player.poster(animeData.imagen);
+                    }
+                })
+                .catch(err => console.log("Error al sincronizar portada: ", err));
+
+            // Cargar y reproducir el video directamente en cualquier resolución/dispositivo
             const videoRealSrc = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
             window.player.src({ type: 'application/x-mpegURL', src: videoRealSrc });
 

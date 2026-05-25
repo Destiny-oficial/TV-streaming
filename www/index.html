@@ -1,192 +1,402 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime Offis AF GDL - Catálogo</title>
-    
-    <style>
-        /* ESTÉTICA FUTURISTA / GLASSMORPHISM (CYAN & MAGENTA) */
-        body {
-            background-color: #05070a;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            padding: 15px;
-            user-select: none;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo - TV-STREAMING</title>
 
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#05070a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-        header h1 {
-            color: #00aaff;
-            margin: 0;
-            font-size: 1.6rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
-        }
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
 
-        header p {
-            color: #ff00aa;
-            margin: 5px 0 0;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-        /* GRID HORIZONTAL DE 3 COLUMNAS POR FILA */
-        .grid-catalogo {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            max-width: 854px;
-            margin: 0 auto;
-        }
+  <style>
+    :root {
+      --primary: #00aaff;
+      --secondary: #ff00aa;
+      --bg: #05070a;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(0, 170, 255, 0.2);
+      --drawer-bg: rgba(10, 12, 16, 0.95);
+      --discord-color: #5865F2; /* Color oficial de Discord */
+    }
 
-        .card-anime {
-            background: rgba(21, 24, 28, 0.6);
-            border: 1px solid rgba(255, 0, 170, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-            position: relative;
-            aspect-ratio: 2/3;
-        }
+    body {
+      background-color: var(--bg);
+      color: white;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 90px 20px 140px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+      overflow-x: hidden;
+    }
 
-        .card-anime:active {
-            transform: scale(0.96);
-            border-color: #00aaff;
-        }
+    /* HEADER FIJO SUPERIOR */
+    header {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 70px;
+      background: rgba(5, 7, 10, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 25px; z-index: 2000;
+      border-bottom: 1px solid var(--glass-border);
+      box-sizing: border-box;
+    }
 
-        .card-anime img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    /* Contenedor del título e icono alineados en fila */
+    .header-logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px; /* Espacio entre el texto y el logo de discord */
+    }
 
-        .card-info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(to top, rgba(5,7,10,0.95) 40%, rgba(0,0,0,0) 100%);
-            padding: 8px;
-            box-sizing: border-box;
-        }
+    header h1 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      text-shadow: 0 0 15px rgba(0, 170, 255, 0.3);
+      text-transform: uppercase;
+      font-weight: 900;
+      margin: 0;
+      letter-spacing: 1px;
+    }
 
-        .card-info h3 {
-            margin: 0;
-            font-size: 0.75rem;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    </style>
+    header h1 span { color: var(--secondary); }
+
+    /* Estilos del botón de Discord */
+    .discord-btn {
+      color: #94a3b8; /* Color gris claro por defecto */
+      font-size: 1.5rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+    .discord-btn:hover {
+      color: var(--discord-color);
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 8px rgba(88, 101, 242, 0.6));
+    }
+    .discord-btn:active {
+      transform: scale(0.95);
+    }
+
+    .menu-trigger {
+      color: white;
+      cursor: pointer;
+      font-size: 30px;
+      transition: 0.2s;
+    }
+    .menu-trigger:active { transform: scale(0.9); color: var(--primary); }
+
+    /* MENÚ HAMBURGUESA LATERAL (DRAWER DERECHO) */
+    .nav-drawer {
+      position: fixed; top: 0; right: -300px; width: 280px; height: 100%;
+      background: var(--drawer-bg); z-index: 3000;
+      backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 40px 20px;
+      box-shadow: -10px 0 30px rgba(0,0,0,0.8);
+      border-left: 1px solid var(--glass-border);
+      box-sizing: border-box;
+    }
+    .nav-drawer.open { right: 0; }
+
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2500;
+      display: none; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    }
+    .drawer-overlay.show { display: block; }
+
+    .drawer-section-title {
+        color: var(--primary); font-size: 0.8rem; font-weight: 800;
+        letter-spacing: 1.5px; text-transform: uppercase; margin: 25px 0 12px 5px;
+    }
+
+    .drawer-item {
+      display: flex; align-items: center; gap: 12px; padding: 14px 15px;
+      color: #94a3b8; text-decoration: none; border-radius: 12px;
+      margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; transition: 0.25s;
+      cursor: pointer; border: 1px solid transparent;
+    }
+    .drawer-item span { font-size: 22px; }
+    .drawer-item:hover, .drawer-item.active {
+      background: var(--card-bg); color: white; border-color: rgba(255,255,255,0.05);
+    }
+    .drawer-item.active { color: var(--primary); border-color: var(--glass-border); }
+
+    /* BUSCADOR AUTO-AJUSTABLE */
+    .search-box {
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      margin: 10px auto 25px;
+    }
+    .search-box input {
+      width: 100%; padding: 15px 20px 15px 50px;
+      background: var(--card-bg); border: 1px solid var(--glass-border);
+      border-radius: 30px; color: white; outline: none; backdrop-filter: blur(15px);
+      transition: 0.3s; font-size: 1rem;
+    }
+    .search-box input:focus { border-color: var(--secondary); box-shadow: 0 0 15px rgba(255, 0, 170, 0.2); }
+    .search-box span { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--primary); }
+
+    /* GRID AUTO-ELÁSTICO DE RESPONSIVIDAD DINÁMICA */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* TARJETAS DE ANIME */
+    .anime-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      overflow: hidden;
+      transition: 0.4s;
+      text-decoration: none;
+      color: white;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .anime-card:hover { transform: translateY(-8px); border-color: var(--primary); }
+    .card-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .card-info { padding: 12px; text-align: center; }
+    .card-info h3 { margin: 0; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+
+    /* BADGES */
+    .badge {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0, 0, 0, 0.75); padding: 4px 8px;
+      border-radius: 6px; font-size: 0.7rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .status-tag { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; text-transform: uppercase; border: 1px solid; font-weight: bold; }
+    .emision { border-color: var(--primary); color: var(--primary); background: rgba(0, 170, 255, 0.1); }
+    .finalizado { border-color: var(--secondary); color: var(--secondary); background: rgba(255, 0, 170, 0.1); }
+
+    /* BARRA INFERIOR DE FILTROS */
+    .bottom-nav {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: rgba(10, 12, 16, 0.85); backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border); border-radius: 25px;
+        display: flex; justify-content: space-around; align-items: center;
+        padding: 10px 15px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        width: 85%; max-width: 400px;
+    }
+
+    .nav-item {
+        flex: 1; display: flex; flex-direction: column; align-items: center;
+        color: #777; cursor: pointer; transition: 0.3s; font-size: 0.65rem; gap: 4px;
+        padding: 5px 0;
+    }
+
+    .nav-item span { font-size: 24px; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active span { font-variation-settings: 'FILL' 1; }
+
+    /* AJUSTES PARA PANTALLAS GRANDES DE COMPUTADORA */
+    @media (min-width: 1024px) {
+        .bottom-nav { bottom: 30px; width: auto; min-width: 400px; padding: 10px 20px; }
+        .nav-item { flex-direction: row; gap: 10px; padding: 8px 20px; font-size: 0.85rem; justify-content: center; }
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <h1>Anime Offis TV</h1>
-        <p>Streaming Hub Móvil</p>
-    </header>
+  <header>
+    <div class="header-logo-container">
+      <h1>TV-STREAMING <span id="header-tag">PRO</span></h1>
+      <a href="https://discord.gg/H9pjZsPZQC" target="_blank" rel="noopener" class="discord-btn" title="Únete a nuestro Discord">
+        <i class="fa-brands fa-discord"></i>
+      </a>
+<h4> Únete a nuestro servidor discord</h4>
+    </div>
+    <span class="material-symbols-rounded menu-trigger" onclick="toggleDrawer(event)">menu</span>
+  </header>
 
-    <div class="grid-catalogo" id="contenedor-catalogo"></div>
+  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+  <div class="nav-drawer" id="navDrawer">
+      <h2 style="color:white; font-size:1.3rem; font-weight:800; margin:0 0 20px 5px; letter-spacing:0.5px;">MENÚ</h2>
 
-    <script src="capacitor.js"></script>
-    
-    <script>
-        // Extraemos las librerías nativas del core de Capacitor
-        const { PushNotifications } = capacitor.Plugins;
+      <div class="drawer-section-title">Usuario</div>
+      <div class="drawer-item" onclick="location.href='https://www.animeoffis.com/perfil'">
+          <span class="material-symbols-rounded">account_circle</span>Mi Perfil
+      </div>
 
-        // --- SISTEMA ROBUSTO DE NOTIFICACIONES PUSH ---
-        function inicializarNotificaciones() {
-            if (!PushNotifications) {
-                console.log("Entorno web detectado: El plugin nativo de Push no está disponible.");
-                return;
-            }
+      <div class="drawer-section-title">Preferencias de Idioma</div>
+      <div class="drawer-item" id="opt-es" onclick="cambiarIdioma('es')">
+          <span class="material-symbols-rounded">translate</span>Español (Lat)
+      </div>
+      <div class="drawer-item" id="opt-jp" onclick="cambiarIdioma('jp')">
+          <span class="material-symbols-rounded">language</span>Japonés (Sub)
+      </div>
+  </div>
 
-            // 1. Solicitar permisos al usuario de forma nativa en Android
-            PushNotifications.requestPermissions().then((result) => {
-                if (result.receive === 'granted') {
-                    // 2. Si da permiso, registrar la app ante los servidores de Google FCM
-                    PushNotifications.register();
-                } else {
-                    console.warn("El usuario denegó los permisos de notificación.");
-                }
-            });
+  <div class="search-box">
+    <span class="material-symbols-rounded">search</span>
+    <input type="text" id="searchInput" placeholder="Buscar en el catálogo..." onkeyup="filtrarContenido()">
+  </div>
 
-            // 3. CONTROL DE FLUJO: Esperar a tener el token nativo en la mano ANTES de suscribirse
-            PushNotifications.addListener('registration', (token) => {
-                console.log('Token FCM generado con éxito. Conectando al canal...');
-                
-                // Suscripción segura al canal 'estrenos' mapeado en tu bot
-                PushNotifications.subscribeTo({ topic: 'estrenos' })
-                    .then(() => console.log('¡Suscrito con éxito al canal de estrenos!'))
-                    .catch(err => console.error('Error al unirse al canal:', err));
-            });
+  <div class="grid-container" id="mainGrid"></div>
 
-            // Alerta si ocurre un error en el registro nativo
-            PushNotifications.addListener('registrationError', (error) => {
-                console.error('Error crítico en el registro nativo de Firebase: ', error);
-            });
+  <div class="bottom-nav">
+      <div class="nav-item active" id="btn-todos" onclick="filtrarCategoria('todos', this)">
+          <span class="material-symbols-rounded">grid_view</span>Todos
+      </div>
+      <div class="nav-item" onclick="filtrarCategoria('emision', this)">
+          <span class="material-symbols-rounded">bolt</span>Emisión
+      </div>
+      <div class="nav-item" onclick="filtrarCategoria('finalizado', this)">
+          <span class="material-symbols-rounded">task_alt</span>Finalizados
+      </div>
+  </div>
 
-            // 4. ¿Qué pasa si llega una notificación con la app abierta (Primer Plano)?
-            PushNotifications.addListener('pushNotificationReceived', (notification) => {
-                console.log('Notificación recibida en primer plano: ', notification);
-                // Opcional: Puedes meter un aviso estético flotante aquí si quieres
-            });
+  <script>
+    const WORKER_URL = "https://video.animeoffis.com"; 
 
-            // 5. ¿Qué pasa si el usuario pulsa la notificación flotante (Cerrada o Segundo Plano)?
-            PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-                console.log('El usuario tocó la notificación:', action.notification);
-                // Redirigir directamente al catálogo o refrescar
-                window.location.href = "index.html";
-            });
+    let catalogoBase = []; 
+    let catalogoProcesado = [];
+    let filtroCategoriaActual = 'todos';
+    let idiomaActual = localStorage.getItem('pref_lang') || 'es';
+
+    async function cargarBaseDeDatos() {
+        try {
+            const respuesta = await fetch('./catalogo.json');
+            if (!respuesta.ok) throw new Error("Archivo no encontrado");
+            catalogoBase = await respuesta.json();
+            cambiarIdioma(idiomaActual);
+        } catch (error) {
+            console.error("Error cargando el catálogo JSON:", error);
+            document.getElementById('mainGrid').innerHTML = "<p style='opacity:0.5; text-align:center; padding: 40px;'>Error al cargar catalogo.json</p>";
         }
+    }
 
-        // --- CARGA DINÁMICA DE TU CATÁLOGO ---
-        function cargarCatalogo() {
-            const CATALOGO_URL = "https://raw.githubusercontent.com/Destiny-oficial/Anime-OffisVD/main/catalogo.json";
-            const contenedor = document.getElementById('contenedor-catalogo');
+    function toggleDrawer(e) {
+        if(e) e.stopPropagation();
+        document.getElementById('navDrawer').classList.toggle('open');
+        document.getElementById('drawerOverlay').classList.toggle('show');
+    }
 
-            fetch(CATALOGO_URL)
-                .then(res => res.json())
-                .then(animes => {
-                    contenedor.innerHTML = ""; // Limpiar cargando
-                    
-                    animes.forEach(anime => {
-                        const card = document.createElement('div');
-                        card.className = "card-anime";
-                        // Al hacer clic, redirige de forma nativa a video.html mandando las variables correctas
-                        card.onclick = () => {
-                            window.location.href = `video.html?anime=${anime.carpeta}&cap=af1`;
-                        };
+    function cambiarIdioma(lang) {
+        idiomaActual = lang;
+        localStorage.setItem('pref_lang', lang);
 
-                        card.innerHTML = `
-                            <img src="${anime.imagen || 'https://via.placeholder.com/150'}" alt="${anime.titulo}">
-                            <div class="card-info">
-                                <h3>${anime.titulo}</h3>
-                            </div>
-                        `;
-                        contenedor.appendChild(card);
-                    });
-                })
-                .catch(err => {
-                    console.error("Error cargando el catálogo de GitHub:", err);
-                    contenedor.innerHTML = "<p style='color:#ff00aa; grid-column: span 3; text-align:center;'>Error de sincronización</p>";
-                });
+        document.querySelectorAll('.drawer-item').forEach(opt => opt.classList.remove('active'));
+        const optActive = document.getElementById(`opt-${lang}`);
+        if(optActive) optActive.classList.add('active');
+
+        catalogoProcesado = catalogoBase.map(item => ({
+            ...item,
+            total: 0,
+            esHLS: false, 
+            carpetaFinal: (idiomaActual === 'es') ? item.carpeta + "_LAT" : item.carpeta
+        }));
+
+        document.getElementById('header-tag').innerText = (idiomaActual === 'es') ? "LAT" : "SUB";
+
+        renderizar();
+        sincronizarConR2();
+
+        const drawer = document.getElementById('navDrawer');
+        if(drawer && drawer.classList.contains('open')) toggleDrawer();
+    }
+
+    function renderizar(dataParaMostrar = null) {
+      const grid = document.getElementById('mainGrid');
+      grid.innerHTML = "";
+
+      const lista = dataParaMostrar || catalogoProcesado.filter(item => {
+          if (item.total === 0 || !item.esHLS) return false; 
+
+          if (filtroCategoriaActual === 'emision') return item.total < 12;
+          if (filtroCategoriaActual === 'finalizado') return item.total >= 12;
+          return true;
+      });
+
+      if (lista.length === 0) {
+          grid.innerHTML = "<p style='opacity:0.3; margin-top:20px; grid-column: 1/-1; text-align:center; padding:40px;'>No hay series en formato HLS disponibles...</p>";
+          return;
+      }
+
+      lista.forEach(item => {
+        const card = document.createElement('a');
+        card.className = "anime-card";
+        card.href = `lista.html?anime=${item.carpetaFinal}&total=${item.total}`;
+
+        let sClase = (item.total >= 12) ? "finalizado" : "emision";
+        let sTexto = (item.total >= 12) ? "Finalizado" : "Emisión";
+
+        card.innerHTML = `
+          <div class="badge">${item.total} EPS</div>
+          <img src="${item.imagen}" class="card-img" loading="lazy">
+          <div class="card-info">
+            <h3>${item.titulo}</h3>
+            <span class="status-tag ${sClase}">${sTexto}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function sincronizarConR2() {
+      await Promise.all(catalogoProcesado.map(async (item) => {
+        try {
+          const res = await fetch(`${WORKER_URL}/?carpeta=${item.carpetaFinal}&hls=true`);
+          if (res.ok) {
+            const data = await res.json();
+            item.total = data.total; 
+            item.esHLS = data.total > 0; 
+          }
+        } catch (e) {
+            item.esHLS = false;
         }
+      }));
+      renderizar();
+    }
 
-        // --- ARRANQUE AUTOMÁTICO ---
-        window.onload = () => {
-            inicializarNotificaciones();
-            cargarCatalogo();
-        };
-    </script>
+    function filtrarCategoria(cat, element) {
+        filtroCategoriaActual = cat;
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        element.classList.add('active');
+        document.getElementById('searchInput').value = ""; 
+        renderizar();
+    }
+
+    function filtrarContenido() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      if (query === "") {
+          renderizar();
+          return;
+      }
+
+      const filtrados = catalogoProcesado.filter(item => {
+          const coincide = item.titulo.toLowerCase().includes(query);
+          const esValidoHLS = item.total > 0 && item.esHLS;
+          return coincide && esValidoHLS;
+      });
+
+      renderizar(filtrados);
+    }
+
+    cargarBaseDeDatos();
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker inyectado con éxito', reg))
+                .catch(err => console.error('Error inyección Service Worker', err));
+        });
+    }
+  </script>
 </body>
 </html>
