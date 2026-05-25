@@ -317,6 +317,11 @@
         window.onload = () => {
             revisarDescargasPendientes();
         };
+// Detectar cuando el internet regrese de golpe estando en la biblioteca offline
+window.navigator.serviceWorker && window.addEventListener('online', () => {
+    console.log("Conexión restablecida. Regresando al catálogo en línea...");
+    window.location.href = 'index.html'; // O 'index.html' según tu estructura
+});
     </script>
 </body>
 </html>

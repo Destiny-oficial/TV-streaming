@@ -32,12 +32,12 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            z-index: 140; /* Por encima de la mayoría de las capas */
-            background: rgba(5, 7, 10, 0.75);
-            border: 1px solid rgba(0, 240, 255, 0.3);
+            z-index: 140; 
+            background: rgba(5, 7, 10, 0.85);
+            border: 1px solid rgba(0, 240, 255, 0.4);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -56,6 +56,11 @@
         .download-status-overlay span.icon {
             color: #00f0ff;
             font-size: 20px;
+            display: inline-block;
+        }
+
+        /* Clase de animación dinámica que controlaremos por JS */
+        .animando-descarga {
             animation: bounceDownload 1.2s infinite ease-in-out;
         }
 
@@ -67,9 +72,8 @@
             letter-spacing: 1px;
         }
 
-        /* Animación de rebote sutil para el icono de descarga */
         @keyframes bounceDownload {
-            0%, 100% { transform: translateY(0); }
+            0%, 100% { transform: translateY(0); color: #00f0ff; }
             50% { transform: translateY(3px); color: #ff00aa; }
         }
 
@@ -140,8 +144,8 @@
     <div class="player-wrapper" id="player-container">
 
         <div class="download-status-overlay" id="downloadIndicator">
-            <span class="material-symbols-rounded icon">downloading</span>
-            <span class="text">Descargando</span>
+            <span class="material-symbols-rounded icon" id="downloadIconUI">downloading</span>
+            <span class="text" id="downloadTextUI">Descargando</span>
         </div>
 
         <div class="paused-title-overlay" id="pausedTitleOverlay">
@@ -170,10 +174,12 @@
         <button class="btn-nav" onclick="cambiarCap(-1)">Anterior</button>
         <button class="btn-nav" style="color:#ff00aa" onclick="window.location.href='index.html'">Inicio</button>
         <button class="btn-nav" onclick="cambiarCap(1)">Siguiente</button>
-        <button id="btn-descargar-offline" class="btn-nav" style="color:#00f0ff; border-color:#00f0ff; margin-top:15px; width:100%;" onclick="prepararDescarga()">
+        <button id="btn-descargar-offline" class="btn-nav" style="color:#00f0ff; border-color:#00f0ff; margin-top:15px; width:100%;" onclick="ejecutarDescargaSilenciosa()">
             📥 Descargar para ver Sin Conexión
         </button>
     </div>
+
+    <script src="capacitor.js"></script>
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="https://cdn.animeoffis.com/sdk.js?id=AO-882065"></script>
@@ -348,37 +354,107 @@
             }
 
             window.history.pushState(null, '', `?anime=${carpeta}&cap=af${numCapitulo}`);
+
+            // Restablecer estado de interfaz de descarga al cambiar de capítulo
+            document.getElementById('downloadIndicator').classList.remove('active');
+            const btnDescarga = document.getElementById('btn-descargar-offline');
+            btnDescarga.disabled = false;
+            btnDescarga.innerText = "📥 Descargar para ver Sin Conexión";
+            btnDescarga.style.borderColor = "#00f0ff";
+            btnDescarga.style.color = "#00f0ff";
         }
 
         window.onload = () => {
             cargarCapitulo(numCapitulo);
-            
-            // Si el usuario vuelve de una descarga o se quedó guardado algo, limpiamos el icono por seguridad
-            document.getElementById('downloadIndicator').classList.remove('active');
         };
 
         function cambiarCap(o) { cargarCapitulo(numCapitulo + o); }
 
-        function prepararDescarga() {
-            // 1. Encendemos el indicador visual con su animación cyberpunk
+
+        // --- 🔥 NUEVO MOTOR DE DESCARGA SILENCIOSA EN SEGUNDO PLANO ---
+        async function ejecutarDescargaSilenciosa() {
+            const btnDescarga = document.getElementById('btn-descargar-offline');
             const indicador = document.getElementById('downloadIndicator');
+            const iconUI = document.getElementById('downloadIconUI');
+            const textUI = document.getElementById('downloadTextUI');
+
+            // 1. Bloquear botón e iniciar animación en el reproductor
+            btnDescarga.disabled = true;
+            btnDescarga.innerText = "⏳ Descargando recurso...";
+            btnDescarga.style.borderColor = "#64748b";
+            btnDescarga.style.color = "#64748b";
+
+            // Mostrar el overlay flotante
+            textUI.innerText = "Descargando";
+            iconUI.innerText = "downloading";
+            iconUI.classList.add('animando-descarga');
             indicador.classList.add('active');
 
-            // 2. Captura los datos dinámicos del anime en reproducción activa
-            const datosDescarga = {
-                carpeta: carpeta,
-                cap: numCapitulo,
-                titulo: document.getElementById('display-anime').innerText,
-                urlMp4: `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/video.mp4`
-            };
-            
-            // Almacena en la caché del navegador
-            localStorage.setItem('pendiente_descarga', JSON.stringify(datosDescarga));
-            
-            // 3. Le damos un pequeño delay de 800ms para que el usuario alcance a ver el efecto visual antes del cambio de página
-            setTimeout(() => {
-                window.location.href = 'offline.html';
-            }, 800);
+            // 2. Extraer dependencias de Capacitor Plugins de manera segura
+            if (!window.capacitor || !window.capacitor.Plugins || !window.capacitor.Plugins.Filesystem) {
+                console.log("Entorno web plano detectado. Simulando interfaz...");
+                setTimeout(() => {
+                    iconUI.classList.remove('animando-descarga');
+                    iconUI.innerText = "check_circle";
+                    textUI.innerText = "Completado";
+                    btnDescarga.innerText = "✅ Descargado Correctamente";
+                }, 4000);
+                return;
+            }
+
+            const { Filesystem } = window.capacitor.Plugins;
+            const { Directory } = Filesystem;
+
+            // 3. Estructurar nombres y rutas dinámicas
+            const tituloAnime = document.getElementById('display-anime').innerText;
+            const urlFinalMp4 = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/video.mp4`;
+            const nombreArchivoDestino = `anime_offis_${carpeta}_af${numCapitulo}.mp4`;
+
+            try {
+                // Iniciar la descarga del binario nativo directo a los archivos privados de la APK
+                await Filesystem.downloadFile({
+                    url: urlFinalMp4,
+                    path: nombreArchivoDestino,
+                    directory: Directory.Data
+                });
+
+                // 4. Sincronizar el localStorage para que cuando abran offline.html ya figure ahí
+                let descargasExistentes = JSON.parse(localStorage.getItem('offis_downloads') || '[]');
+                const idUnico = `${carpeta}_${numCapitulo}`;
+                
+                if (!descargasExistentes.some(x => x.id === idUnico)) {
+                    descargasExistentes.push({
+                        id: idUnico,
+                        titulo: tituloAnime,
+                        cap: numCapitulo,
+                        archivo: nombreArchivoDestino
+                    });
+                    localStorage.setItem('offis_downloads', JSON.stringify(descargasExistentes));
+                }
+
+                // 5. Interfaz de Éxito: Cambia el icono a palomita verde por 3 segundos y luego se oculta
+                iconUI.classList.remove('animando-descarga');
+                iconUI.innerText = "check_circle";
+                iconUI.style.color = "#00ff66";
+                textUI.innerText = "Guardado";
+                btnDescarga.innerText = "✅ Descargado en Almacenamiento";
+
+                setTimeout(() => {
+                    indicador.classList.remove('active');
+                }, 3500);
+
+            } catch (error) {
+                console.error("Error crítico en descarga interna de la APK:", error);
+                // Interfaz de Fallo
+                iconUI.classList.remove('animando-descarga');
+                iconUI.innerText = "error";
+                iconUI.style.color = "#ff0055";
+                textUI.innerText = "Error";
+                btnDescarga.innerText = "❌ Fallo al descargar. Reintentar.";
+                btnDescarga.disabled = false;
+                btnDescarga.style.borderColor = "#ff0055";
+                btnDescarga.style.color = "#ff0055";
+            }
         }
     </script>
 </body>
