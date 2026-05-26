@@ -265,10 +265,8 @@
             window.location.href = 'offline.html';
         }
     }
-    // Ejecutar verificación antes de hacer cualquier fetch de base de datos
     comprobarConexionInicial();
 
-    // Listeners activos para cambios de red en tiempo real
     window.addEventListener('offline', () => {
         console.log("Se perdió la conexión a internet. Cambiando a biblioteca local...");
         window.location.href = 'offline.html';
@@ -282,7 +280,6 @@
     let idiomaActual = localStorage.getItem('pref_lang') || 'es';
 
     async function cargarBaseDeDatos() {
-        // Doble validación de resguardo por si los datos caen en pleno proceso
         if (!navigator.onLine) { window.location.href = 'offline.html'; return; }
         
         try {
@@ -310,10 +307,10 @@
         const optActive = document.getElementById(`opt-${lang}`);
         if(optActive) optActive.classList.add('active');
 
+        // 🎯 ADAPTACIÓN MP4: Eliminamos la lógica de validación esHLS anterior
         catalogoProcesado = catalogoBase.map(item => ({
             ...item,
             total: 0,
-            esHLS: false, 
             carpetaFinal: (idiomaActual === 'es') ? item.carpeta + "_LAT" : item.carpeta
         }));
 
@@ -330,8 +327,9 @@
       const grid = document.getElementById('mainGrid');
       grid.innerHTML = "";
 
+      // 🎯 ADAPTACIÓN MP4: Filtramos basándonos en que el conteo de MP4 sea mayor a 0
       const lista = dataParaMostrar || catalogoProcesado.filter(item => {
-          if (item.total === 0 || !item.esHLS) return false; 
+          if (item.total === 0) return false; 
 
           if (filtroCategoriaActual === 'emision') return item.total < 12;
           if (filtroCategoriaActual === 'finalizado') return item.total >= 12;
@@ -339,13 +337,14 @@
       });
 
       if (lista.length === 0) {
-          grid.innerHTML = "<p style='opacity:0.3; margin-top:20px; grid-column: 1/-1; text-align:center; padding:40px;'>No hay series en formato HLS disponibles...</p>";
+          grid.innerHTML = "<p style='opacity:0.3; margin-top:20px; grid-column: 1/-1; text-align:center; padding:40px;'>No hay capítulos multimedia disponibles en Cloudflare R2...</p>";
           return;
       }
 
       lista.forEach(item => {
         const card = document.createElement('a');
         card.className = "anime-card";
+        // Mandamos a lista.html pasando la carpeta limpia y el conteo de MP4s leídos
         card.href = `lista.html?anime=${item.carpetaFinal}&total=${item.total}`;
 
         let sClase = (item.total >= 12) ? "finalizado" : "emision";
@@ -367,14 +366,14 @@
       if (!navigator.onLine) return;
       await Promise.all(catalogoProcesado.map(async (item) => {
         try {
-          const res = await fetch(`${WORKER_URL}/?carpeta=${item.carpetaFinal}&hls=true`);
+          // 🎯 ADAPTACIÓN MP4: Quitamos el parámetro obsoleto &hls=true de la URL
+          const res = await fetch(`${WORKER_URL}/?carpeta=${item.carpetaFinal}`);
           if (res.ok) {
             const data = await res.json();
-            item.total = data.total; 
-            item.esHLS = data.total > 0; 
+            item.total = data.total; // Tu worker mapea y retorna la cantidad de archivos asignados (.mp4)
           }
         } catch (e) {
-            item.esHLS = false;
+            item.total = 0;
         }
       }));
       renderizar();
@@ -398,8 +397,8 @@
 
       const filtrados = catalogoProcesado.filter(item => {
           const coincide = item.titulo.toLowerCase().includes(query);
-          const esValidoHLS = item.total > 0 && item.esHLS;
-          return coincide && esValidoHLS;
+          const tieneVideos = item.total > 0;
+          return coincide && tieneVideos;
       });
 
       renderizar(filtrados);

@@ -143,14 +143,12 @@
     </div>
 
     <script src="capacitor.js"></script>
-
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="https://cdn.animeoffis.com/sdk.js?id=AO-882065"></script>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         var carpeta = urlParams.get('anime') || 'Koori_no_Jouheki_LAT';
-        // Limpiamos el formato de cap (ejemplo si viene como af1, extrae solo el número 1)
         var numCapitulo = parseInt((urlParams.get('cap') || 'af1').replace('af', ''));
 
         const nombreLimpio = carpeta.replace(/_/g, ' ');
@@ -161,15 +159,11 @@
         document.getElementById('overlay-anime').innerText = nombreLimpio;
         document.getElementById('overlay-cap').innerText = textoCapitulo;
 
+        // 🎯 ADAPTACIÓN MP4: Eliminamos flags redundantes de VHS (HLS) para que levante MP4 nativo de forma limpia
         window.player = videojs('video-styceht', {
             controls: true, 
             fluid: true, 
-            inactivityTimeout: 2000,
-            html5: {
-                vhs: { overrideNative: true },
-                nativeAudioTracks: false,
-                nativeVideoTracks: false
-            }
+            inactivityTimeout: 2000
         });
 
         const overlay = document.getElementById('mobile-overlay');
@@ -268,13 +262,13 @@
             }
         }
 
+        // 🎯 ADAPTACIÓN MP4: Manejador de fallos de red reintentando cargar la estructura de video directa de R2 (.mp4)
         window.player.on('error', function() {
             const error = window.player.error();
             if (error && error.code === 4) {
                 window.player.error(null);
-                // Si falla por problemas de red o recarga, reintenta mapear la ruta m3u8
-                const videoSrcForzado = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
-                window.player.src({ type: 'application/x-mpegURL', src: videoSrcForzado });
+                const videoSrcForzado = `https://media.animeoffis.com/${carpeta}/af${numCapitulo}.mp4`;
+                window.player.src({ type: 'video/mp4', src: videoSrcForzado });
                 window.player.play();
             }
         });
@@ -300,9 +294,10 @@
                 })
                 .catch(err => console.log("Error al sincronizar portada: ", err));
 
-            // 🔥 RUTA CON INTERNET (M3U8): Coincide con /${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8
-            const videoRealSrc = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
-            window.player.src({ type: 'application/x-mpegURL', src: videoRealSrc });
+            // 🎯 ADAPTACIÓN MP4: Cambiamos el type a 'video/mp4' y apuntamos directamente a la raíz de la serie:
+            // Estructura limpia: https://media.animeoffis.com/carpeta/afX.mp4
+            const videoRealSrc = `https://media.animeoffis.com/${carpeta}/af${numCapitulo}.mp4`;
+            window.player.src({ type: 'video/mp4', src: videoRealSrc });
 
             if (window.AnimeOffisSDK) {
                 window.AnimeOffisSDK.solicitarAnuncio('video-styceht');
@@ -357,7 +352,7 @@
 
             const tituloAnime = document.getElementById('display-anime').innerText;
             
-            // 🔥 CORRECCIÓN CLAVE: Tu enlace directo sin la subcarpeta /capX/ para el archivo MP4
+            // 🎯 ADAPTACIÓN MP4: Ajustamos la URL de descarga para Capacitor para que sea idéntica al reproductor
             const urlFinalMp4 = `https://media.animeoffis.com/${carpeta}/af${numCapitulo}.mp4`;
             const nombreArchivoDestino = `anime_offis_${carpeta}_af${numCapitulo}.mp4`;
 
@@ -383,7 +378,7 @@
                     localStorage.setItem('offis_downloads', JSON.stringify(descargasExistentes));
                 }
 
-                iconUI.classList.remove('animando-descarga');
+               iconUI.classList.remove('animando-descarga');
                 iconUI.innerText = "check_circle";
                 iconUI.style.color = "#00ff66";
                 textUI.innerText = "Guardado";

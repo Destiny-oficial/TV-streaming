@@ -112,8 +112,8 @@
         const anime = urlParams.get('anime') || 'Koori_no_Jouheki_LAT';
         const totalCaps = parseInt(urlParams.get('total')) || 4; 
 
-        // Limpia guiones y remueve sufijos de idioma para mejorar la presentación visual
-        const nombreLimpio = anime.replace(/_/g, ' ').replace(/ LAT/i, '').replace(/ SUB/i, '');
+        // 🛠️ OPTIMIZACIÓN: Limpia guiones bajos y remueve de manera precisa tanto " _LAT" como "_LAT" o " SUB"
+        const nombreLimpio = anime.replace(/_/g, ' ').replace(/\s?LAT/i, '').replace(/\s?SUB/i, '');
         document.getElementById('anime-title').innerText = nombreLimpio;
 
         const contenedor = document.getElementById('contenedor-caps');
@@ -122,7 +122,8 @@
         for (let i = 1; i <= totalCaps; i++) {
             const item = document.createElement('a');
             item.className = 'capitulo-item';
-            // Envía los parámetros limpios al reproductor HLS organizado
+            
+            // Envía la carpeta real de la serie (con o sin _LAT) y el formato del capítulo requerido (af1, af2...)
             item.href = `video.html?anime=${anime}&cap=af${i}`; 
 
             item.innerHTML = `
