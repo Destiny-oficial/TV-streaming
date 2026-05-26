@@ -27,7 +27,7 @@
         .fullscreen-btn-flotante span { font-size: 28px; }
         .fullscreen-btn-flotante:active { transform: scale(0.9); background: #00aaff; }
 
-        /* --- ICONO DE DESCARGA EN LA ESQUINA SUPERIOR DERECHA --- */
+        /* ICONO DE DESCARGA EN LA ESQUINA SUPERIOR DERECHA */
         .download-status-overlay {
             position: absolute;
             top: 15px;
@@ -59,7 +59,6 @@
             display: inline-block;
         }
 
-        /* Clase de animación dinámica que controlaremos por JS */
         .animando-descarga {
             animation: bounceDownload 1.2s infinite ease-in-out;
         }
@@ -100,7 +99,6 @@
 
         #ad-label { position: absolute; top: 15px; left: 15px; background: #00aaff; color: black; font-weight: bold; padding: 4px 10px; font-size: 11px; z-index: 110; border-radius: 4px; display:none; }
 
-        /* ADAPTACIÓN AUTOMÁTICA EN COLUMNA CON MEDIDAS FLEXIBLES */
         .video-js { width: 100% !important; height: 100% !important; }
         .video-js video { 
             object-fit: contain !important; 
@@ -130,8 +128,8 @@
 
         .vjs-text-track-display { bottom: 40px !important; }
 
-        .controles-nav { display: flex; justify-content: center; gap: 10px; margin-top: 20px; width: 100%; max-width: 854px; }
-        .btn-nav { padding: 12px; background: #15181c; border: 1px solid #2a2e35; color: white; border-radius: 8px; flex: 1; font-weight: bold; cursor: pointer; }
+        .controles-nav { display: flex; justify-content: center; gap: 10px; margin-top: 20px; width: 100%; max-width: 854px; flex-wrap: wrap; }
+        .btn-nav { padding: 12px; background: #15181c; border: 1px solid #2a2e35; color: white; border-radius: 8px; flex: 1; font-weight: bold; cursor: pointer; min-width: 80px; }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -174,7 +172,7 @@
         <button class="btn-nav" onclick="cambiarCap(-1)">Anterior</button>
         <button class="btn-nav" style="color:#ff00aa" onclick="window.location.href='index.html'">Inicio</button>
         <button class="btn-nav" onclick="cambiarCap(1)">Siguiente</button>
-        <button id="btn-descargar-offline" class="btn-nav" style="color:#00f0ff; border-color:#00f0ff; margin-top:15px; width:100%;" onclick="ejecutarDescargaSilenciosa()">
+        <button id="btn-descargar-offline" class="btn-nav" style="color:#00f0ff; border-color:#00f0ff; margin-top:15px; width:100%; flex-basis: 100%;" onclick="ejecutarDescargaSilenciosa()">
             📥 Descargar para ver Sin Conexión
         </button>
     </div>
@@ -211,7 +209,6 @@
         const overlay = document.getElementById('mobile-overlay');
         const pausedOverlay = document.getElementById('pausedTitleOverlay');
 
-        // --- LÓGICA DE HISTORIAL ---
         function guardarProgreso() {
             if (window.AnimeOffisSDK && window.AnimeOffisSDK.esAnuncio) return;
             const data = {
@@ -241,7 +238,6 @@
             if (window.AnimeOffisSDK && !window.AnimeOffisSDK.esAnuncio) retomarProgreso();
         });
 
-        // --- PANTALLA COMPLETA Y BLOQUEO DE ORIENTACIÓN ---
         async function toggleFullscreenDinamico() {
             const contenedor = document.getElementById('player-container');
             const iconoFs = document.querySelector('#btn-fs span');
@@ -270,7 +266,6 @@
             }
         });
 
-        // --- DETECCIÓN DE PAUSA/PLAY PARA CAPA DE TÍTULO ---
         window.player.on('pause', () => {
             if (window.AnimeOffisSDK && !window.AnimeOffisSDK.esAnuncio) {
                 pausedOverlay.style.opacity = '1';
@@ -298,12 +293,8 @@
             window.player.paused() ? window.player.play() : window.player.pause();
         });
 
-        window.player.on('play', () => {
-            document.getElementById('play-icon').innerText = 'pause';
-        });
-        window.player.on('pause', () => {
-            document.getElementById('play-icon').innerText = 'play_arrow';
-        });
+        window.player.on('play', () => { document.getElementById('play-icon').innerText = 'pause'; });
+        window.player.on('pause', () => { document.getElementById('play-icon').innerText = 'play_arrow'; });
 
         function saltar(s) {
             if (window.AnimeOffisSDK && !window.AnimeOffisSDK.esAnuncio) {
@@ -314,9 +305,7 @@
         window.player.on('error', function() {
             const error = window.player.error();
             if (error && error.code === 4) {
-                console.log("[HLS Guard] Detectada ruta obsoleta del SDK. Forzando subcarpeta...");
                 window.player.error(null);
-
                 const videoSrcForzado = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
                 window.player.src({ type: 'application/x-mpegURL', src: videoSrcForzado });
                 window.player.play();
@@ -337,13 +326,14 @@
             fetch(CATALOGO_URL)
                 .then(res => res.json())
                 .then(catalogo => {
-                    const animeData = catalogo.find(item => item.carpeta === carpeta);
+                    const animeData = catalogo.find(item => item.carpeta === carpeta || item.carpeta + "_LAT" === carpeta);
                     if (animeData && animeData.imagen) {
                         window.player.poster(animeData.imagen);
                     }
                 })
                 .catch(err => console.log("Error al sincronizar portada: ", err));
 
+            // URL del streaming HLS con subcarpeta capX
             const videoRealSrc = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
             window.player.src({ type: 'application/x-mpegURL', src: videoRealSrc });
 
@@ -355,7 +345,6 @@
 
             window.history.pushState(null, '', `?anime=${carpeta}&cap=af${numCapitulo}`);
 
-            // Restablecer estado de interfaz de descarga al cambiar de capítulo
             document.getElementById('downloadIndicator').classList.remove('active');
             const btnDescarga = document.getElementById('btn-descargar-offline');
             btnDescarga.disabled = false;
@@ -364,33 +353,27 @@
             btnDescarga.style.color = "#00f0ff";
         }
 
-        window.onload = () => {
-            cargarCapitulo(numCapitulo);
-        };
-
+        window.onload = () => { cargarCapitulo(numCapitulo); };
         function cambiarCap(o) { cargarCapitulo(numCapitulo + o); }
 
 
-        // --- 🔥 NUEVO MOTOR DE DESCARGA SILENCIOSA EN SEGUNDO PLANO ---
+        // --- 📥 NUEVO MOTOR DE DESCARGA CON RUTA DIRECTA MP4 ---
         async function ejecutarDescargaSilenciosa() {
             const btnDescarga = document.getElementById('btn-descargar-offline');
             const indicador = document.getElementById('downloadIndicator');
             const iconUI = document.getElementById('downloadIconUI');
             const textUI = document.getElementById('downloadTextUI');
 
-            // 1. Bloquear botón e iniciar animación en el reproductor
             btnDescarga.disabled = true;
             btnDescarga.innerText = "⏳ Descargando recurso...";
             btnDescarga.style.borderColor = "#64748b";
             btnDescarga.style.color = "#64748b";
 
-            // Mostrar el overlay flotante
             textUI.innerText = "Descargando";
             iconUI.innerText = "downloading";
             iconUI.classList.add('animando-descarga');
             indicador.classList.add('active');
 
-            // 2. Extraer dependencias de Capacitor Plugins de manera segura
             if (!window.capacitor || !window.capacitor.Plugins || !window.capacitor.Plugins.Filesystem) {
                 console.log("Entorno web plano detectado. Simulando interfaz...");
                 setTimeout(() => {
@@ -405,20 +388,21 @@
             const { Filesystem } = window.capacitor.Plugins;
             const { Directory } = Filesystem;
 
-            // 3. Estructurar nombres y rutas dinámicas
             const tituloAnime = document.getElementById('display-anime').innerText;
-            const urlFinalMp4 = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/video.mp4`;
+            
+            // 🔥 CORRECCIÓN CRÍTICA: Tu estructura exacta para el archivo de descarga .mp4
+            const urlFinalMp4 = `https://media.animeoffis.com/${carpeta}/af${numCapitulo}.mp4`;
             const nombreArchivoDestino = `anime_offis_${carpeta}_af${numCapitulo}.mp4`;
 
             try {
-                // Iniciar la descarga del binario nativo directo a los archivos privados de la APK
+                // Iniciar la descarga del binario real directo a la raíz de datos privados de la APK
                 await Filesystem.downloadFile({
                     url: urlFinalMp4,
                     path: nombreArchivoDestino,
                     directory: Directory.Data
                 });
 
-                // 4. Sincronizar el localStorage para que cuando abran offline.html ya figure ahí
+                // Sincronizar el localStorage para que figure al abrir offline.html
                 let descargasExistentes = JSON.parse(localStorage.getItem('offis_downloads') || '[]');
                 const idUnico = `${carpeta}_${numCapitulo}`;
                 
@@ -432,7 +416,6 @@
                     localStorage.setItem('offis_downloads', JSON.stringify(descargasExistentes));
                 }
 
-                // 5. Interfaz de Éxito: Cambia el icono a palomita verde por 3 segundos y luego se oculta
                 iconUI.classList.remove('animando-descarga');
                 iconUI.innerText = "check_circle";
                 iconUI.style.color = "#00ff66";
@@ -445,7 +428,6 @@
 
             } catch (error) {
                 console.error("Error crítico en descarga interna de la APK:", error);
-                // Interfaz de Fallo
                 iconUI.classList.remove('animando-descarga');
                 iconUI.innerText = "error";
                 iconUI.style.color = "#ff0055";
