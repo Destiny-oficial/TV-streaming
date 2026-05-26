@@ -48,28 +48,11 @@
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
         
-        .download-status-overlay.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .download-status-overlay.active { opacity: 1; transform: translateY(0); }
+        .download-status-overlay span.icon { color: #00f0ff; font-size: 20px; display: inline-block; }
 
-        .download-status-overlay span.icon {
-            color: #00f0ff;
-            font-size: 20px;
-            display: inline-block;
-        }
-
-        .animando-descarga {
-            animation: bounceDownload 1.2s infinite ease-in-out;
-        }
-
-        .download-status-overlay span.text {
-            font-size: 11px;
-            font-weight: 800;
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .animando-descarga { animation: bounceDownload 1.2s infinite ease-in-out; }
+        .download-status-overlay span.text { font-size: 11px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
 
         @keyframes bounceDownload {
             0%, 100% { transform: translateY(0); color: #00f0ff; }
@@ -100,31 +83,13 @@
         #ad-label { position: absolute; top: 15px; left: 15px; background: #00aaff; color: black; font-weight: bold; padding: 4px 10px; font-size: 11px; z-index: 110; border-radius: 4px; display:none; }
 
         .video-js { width: 100% !important; height: 100% !important; }
-        .video-js video { 
-            object-fit: contain !important; 
-            padding-bottom: 30px !important; 
-            box-sizing: border-box !important;
-        }
+        .video-js video { object-fit: contain !important; padding-bottom: 30px !important; box-sizing: border-box !important; }
 
-        #player-container:fullscreen { 
-            display: flex !important; flex-direction: column !important;
-            align-items: center !important; justify-content: center !important;
-            background-color: #000 !important;
-        }
-        #player-container:fullscreen .video-js { 
-            width: 100% !important; height: 100% !important;
-            max-width: 100% !important; max-height: 100% !important;
-        }
+        #player-container:fullscreen { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; background-color: #000 !important; }
+        #player-container:fullscreen .video-js { width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; }
 
-        #player-container:-webkit-full-screen { 
-            display: flex !important; flex-direction: column !important;
-            align-items: center !important; justify-content: center !important;
-            background-color: #000 !important;
-        }
-        #player-container:-webkit-full-screen .video-js { 
-            width: 100% !important; height: 100% !important;
-            max-width: 100% !important; max-height: 100% !important;
-        }
+        #player-container:-webkit-full-screen { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; background-color: #000 !important; }
+        #player-container:-webkit-full-screen .video-js { width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; }
 
         .vjs-text-track-display { bottom: 40px !important; }
 
@@ -185,6 +150,7 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         var carpeta = urlParams.get('anime') || 'Koori_no_Jouheki_LAT';
+        // Limpiamos el formato de cap (ejemplo si viene como af1, extrae solo el número 1)
         var numCapitulo = parseInt((urlParams.get('cap') || 'af1').replace('af', ''));
 
         const nombreLimpio = carpeta.replace(/_/g, ' ');
@@ -306,6 +272,7 @@
             const error = window.player.error();
             if (error && error.code === 4) {
                 window.player.error(null);
+                // Si falla por problemas de red o recarga, reintenta mapear la ruta m3u8
                 const videoSrcForzado = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
                 window.player.src({ type: 'application/x-mpegURL', src: videoSrcForzado });
                 window.player.play();
@@ -333,7 +300,7 @@
                 })
                 .catch(err => console.log("Error al sincronizar portada: ", err));
 
-            // URL del streaming HLS con subcarpeta capX
+            // 🔥 RUTA CON INTERNET (M3U8): Coincide con /${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8
             const videoRealSrc = `https://media.animeoffis.com/${carpeta}/cap${numCapitulo}/af${numCapitulo}.m3u8`;
             window.player.src({ type: 'application/x-mpegURL', src: videoRealSrc });
 
@@ -357,7 +324,7 @@
         function cambiarCap(o) { cargarCapitulo(numCapitulo + o); }
 
 
-        // --- 📥 NUEVO MOTOR DE DESCARGA CON RUTA DIRECTA MP4 ---
+        // --- 📥 MOTOR DE DESCARGA CON TU NUEVA RUTA DIRECTA MP4 ---
         async function ejecutarDescargaSilenciosa() {
             const btnDescarga = document.getElementById('btn-descargar-offline');
             const indicador = document.getElementById('downloadIndicator');
@@ -390,19 +357,19 @@
 
             const tituloAnime = document.getElementById('display-anime').innerText;
             
-            // 🔥 CORRECCIÓN CRÍTICA: Tu estructura exacta para el archivo de descarga .mp4
+            // 🔥 CORRECCIÓN CLAVE: Tu enlace directo sin la subcarpeta /capX/ para el archivo MP4
             const urlFinalMp4 = `https://media.animeoffis.com/${carpeta}/af${numCapitulo}.mp4`;
             const nombreArchivoDestino = `anime_offis_${carpeta}_af${numCapitulo}.mp4`;
 
             try {
-                // Iniciar la descarga del binario real directo a la raíz de datos privados de la APK
+                // Iniciar la transferencia del binario MP4 a la memoria privada de la APK
                 await Filesystem.downloadFile({
                     url: urlFinalMp4,
                     path: nombreArchivoDestino,
                     directory: Directory.Data
                 });
 
-                // Sincronizar el localStorage para que figure al abrir offline.html
+                // Sincronizar la descarga en el localStorage para la biblioteca offline.html
                 let descargasExistentes = JSON.parse(localStorage.getItem('offis_downloads') || '[]');
                 const idUnico = `${carpeta}_${numCapitulo}`;
                 
@@ -427,7 +394,7 @@
                 }, 3500);
 
             } catch (error) {
-                console.error("Error crítico en descarga interna de la APK:", error);
+                console.error("Error crítico en descarga nativa:", error);
                 iconUI.classList.remove('animando-descarga');
                 iconUI.innerText = "error";
                 iconUI.style.color = "#ff0055";
